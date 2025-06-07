@@ -32,14 +32,14 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
 
-  String _user_id = "";
+  String _user_name= "";
   String _user_password = "";
   final String _error_login = "";
 
   void doLogin() async {
     //SEMENTARA PAKE SHARED PREFERANCE SEK KARENA GK ADA DB
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString("user_id", _user_id);
+    prefs.setString("_user_name", _user_name);
     main();
 
   //   final response = await http.post(
@@ -100,7 +100,7 @@ class _LoginState extends State<Login> {
                     ),
                     onChanged: (value) {
                       setState(() {
-                        _user_id = value;
+                        _user_name = value;
                       });
                     },
                   ),
