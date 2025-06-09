@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_market/screen/login.dart';
 
@@ -36,23 +35,43 @@ class _RegisterState extends State<Register> {
   String _user_role = "";
 
   void Submit() async{
-    final response = await http
-      .post(Uri.parse("https://ubaya.xyz/flutter/160422029/register.php"), body: {
-    'email': _user_email,
-    'username': _user_name,
-    'password': _user_password,
-    'role': _user_role
-    });
-    if(response.statusCode == 200){
-      Map json = jsonDecode(response.body);
-      if(json['result']=='success'){
-        if(!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Sukses Register")));
+
+    final response = await http.post(
+      Uri.parse("http://192.168.1.9/ET/register.php"),
+      body: {'name': _user_name, 'email': _user_email, 'password': _user_password, 'role': _user_role}
+    );
+
+      if (response.statusCode == 200) {
+        Map jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['result'] == 'success') {
+
+          if (!mounted) return;
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Register Successfully')));
+        }
+      } else {
+        ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error')));
+        throw Exception('Failed to connect to API');
       }
-    } else{
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error")));
-      throw Exception("Gagal membaca API");
-    }
+
+    // final response = await http
+    //   .post(Uri.parse("https://ubaya.xyz/flutter/160422029/register.php"), body: {
+    // 'email': _user_email,
+    // 'username': _user_name,
+    // 'password': _user_password,
+    // 'role': _user_role
+    // });
+    // if(response.statusCode == 200){
+    //   Map json = jsonDecode(response.body);
+    //   if(json['result']=='success'){
+    //     if(!mounted) return;
+    //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Sukses Register")));
+    //   }
+    // } else{
+    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error")));
+    //   throw Exception("Gagal membaca API");
+    // }
   }
 
   @override
@@ -60,6 +79,7 @@ class _RegisterState extends State<Register> {
     return Scaffold(
       body:Center(
         child: Container(
+          key: _formKey,
           height: 500,
           width: 400,
           margin: EdgeInsets.all(20),

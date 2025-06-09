@@ -1,8 +1,10 @@
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_market/main.dart';
+import 'package:my_market/screen/customer/home.dart';
+import 'package:my_market/screen/penjual/home.dart';
 import 'package:my_market/screen/register.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,15 +34,57 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
 
-  String _user_name= "";
+  String _user_email= "";
   String _user_password = "";
-  final String _error_login = "";
+  String _error_login = "";
 
   void doLogin() async {
-    //SEMENTARA PAKE SHARED PREFERANCE SEK KARENA GK ADA DB
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString("_user_name", _user_name);
-    main();
+
+    //SEMENTARA MASIH PAKE LOCAL, IP NYA DIGANTI SESUAI LAPTOP MASING-MASING, 
+    //login.php TARUH DI HTDOCS DAN URL SESUAIKAN DENGAN LOKASI login.php
+    final response = await http.post(
+      Uri.parse("http://192.168.1.9/ET/login.php"),
+      body: {'email': _user_email, 'password': _user_password}
+    );
+
+      if (response.statusCode == 200) {
+        Map jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['result'] == 'success') {
+          final prefs = await SharedPreferences.getInstance();
+          prefs.setString("_user_email", _user_email);
+          prefs.setString("_user_role", jsonResponse['role']);
+
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => const MyHomePage(title: 'Home Page')),
+          // );
+
+          String role = jsonResponse['role'];
+          if (role == 'penjual') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePenjual()),
+            );
+          } else if (role == 'customer') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeCustomer()),
+            );
+          } else {
+            setState(() {
+              _error_login = "Unknown role: $role";
+            });
+          }
+      
+        } else {
+          setState(() {
+            _error_login = "Invalid username or password";
+          });
+        }
+      } else {
+        throw Exception('Failed to connect to API');
+      }
+
 
   //   final response = await http.post(
   //       Uri.parse("https://ubaya.xyz/flutter/160422029/login.php"),
@@ -68,7 +112,7 @@ class _LoginState extends State<Login> {
     return Scaffold(
       body:Center(
         child: Container(
-          height: 380,
+          height: 400,
           width: 400,
           margin: EdgeInsets.all(20),
           padding: EdgeInsets.all(20),
@@ -100,7 +144,7 @@ class _LoginState extends State<Login> {
                     ),
                     onChanged: (value) {
                       setState(() {
-                        _user_name = value;
+                        _user_email = value;
                       });
                     },
                   ),
