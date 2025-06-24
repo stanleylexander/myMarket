@@ -1,13 +1,14 @@
-// lib/screen/customer/product_detail.dart
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:my_market/class/cart_item.dart';
+import 'package:my_market/class/cart_manager.dart';
+import 'package:my_market/class/category.dart';
 import 'package:my_market/class/product.dart';
-import 'package:my_market/screen/customer/chat.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final int productId;
+
   const ProductDetailScreen({super.key, required this.productId});
 
   @override
@@ -16,25 +17,8 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Product? product;
-
-  Future<void> fetchProductDetail() async {
-    // Anda perlu membuat endpoint PHP baru untuk ini
-    final response = await http.post(
-      Uri.parse(
-        "https://ubaya.xyz/flutter/160422029/myMarket_productdetail.php",
-      ),
-      body: {'id': widget.productId.toString()},
-    );
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> jsonResponse = jsonDecode(response.body);
-      if (jsonResponse['result'] == 'success') {
-        setState(() {
-          product = Product.fromJson(jsonResponse['data']);
-        });
-      }
-    }
-  }
+  bool isLoading = true;
+  String errorMessage = '';
 
   @override
   void initState() {
@@ -42,113 +26,146 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     fetchProductDetail();
   }
 
+  Future<void> fetchProductDetail() async {
+    final response = await http.post(
+      Uri.parse(
+        "https://ubaya.xyz/flutter/160422024/myMarket_productDetail.php",
+      ),
+      body: {"product_id": widget.productId.toString()},
+    );
+
+    if (response.statusCode == 200) {
+      Map jsonResponse = jsonDecode(response.body);
+      if (jsonResponse['result'] == 'success') {
+        setState(() {
+          product = Product.fromJson(jsonResponse['data']);
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage = jsonResponse['message'];
+          isLoading = false;
+        });
+      }
+    } else {
+      setState(() {
+        errorMessage = 'Failed to load data from server.';
+        isLoading = false;
+      });
+    }
+  }
+
+  Widget buildCategoryChips(List<Category> categories) {
+    return Wrap(
+      spacing: 6,
+      children:
+          categories
+              .map(
+                (cat) => Chip(
+                  label: Text(cat.name),
+                  backgroundColor: Colors.blue.shade100,
+                ),
+              )
+              .toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (product == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text("Detail Produk")),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(title: Text(product!.name)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (product!.image.isNotEmpty)
-              Center(
-                child: Image.network(
-                  product!.image,
-                  height: 250,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image, size: 100),
+      appBar: AppBar(title: const Text('Detail Produk')),
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : product == null
+              ? Center(child: Text(errorMessage))
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ListView(
+                  children: [
+                    if (product!.image.isNotEmpty)
+                      Image.network(
+                        product!.image,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(Icons.broken_image, size: 100);
+                        },
+                      )
+                    else
+                      const Icon(Icons.shopping_bag_outlined, size: 100),
+                    const SizedBox(height: 16),
+                    Text(
+                      product!.name,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Rp ${product!.price.toStringAsFixed(0)}",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.green,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Stok: ${product!.stock}",
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      product!.description,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.add_shopping_cart),
+                      label: const Text("Tambah ke Keranjang"),
+                      onPressed: () {
+                        CartManager.add(
+                          CartItem(
+                            productId: product!.id,
+                            name: product!.name,
+                            price: product!.price,
+                            quantity: 1,
+                            image: product!.image,
+                          ),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Produk ditambahkan ke keranjang"),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+                    if (product!.category != null &&
+                        product!.category!.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Kategori:",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          buildCategoryChips(product!.category!),
+                        ],
+                      ),
+                  ],
                 ),
               ),
-            const SizedBox(height: 16),
-            Text(
-              product!.name,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Rp ${product!.price.toStringAsFixed(0)}",
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: Colors.deepPurple),
-            ),
-            const SizedBox(height: 8),
-            Text("Stok: ${product!.stock}"),
-            const SizedBox(height: 16),
-            const Text(
-              "Deskripsi:",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(product!.description),
-            const SizedBox(height: 16),
-            const Text(
-              "Kategori:",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Wrap(
-              spacing: 8.0,
-              children:
-                  product!.category
-                      ?.map((cat) => Chip(label: Text(cat.name)))
-                      .toList() ??
-                  [],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              "Penjual:",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            // Anda perlu 'seller_name' & 'seller_id' dari PHP
-            Text(product!.sellerName ?? 'Tidak diketahui'),
-            const Divider(height: 32),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.shopping_cart_checkout),
-              label: const Text("Tambah ke Keranjang"),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("${product!.name} ditambahkan ke keranjang!"),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.chat_bubble_outline),
-              label: const Text("Chat Penjual"),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50),
-              ),
-              onPressed: () {
-                if (product!.sellerId != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => ChatScreen(
-                            sellerId: product!.sellerId!,
-                            sellerName: product!.sellerName ?? 'Penjual',
-                          ),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
