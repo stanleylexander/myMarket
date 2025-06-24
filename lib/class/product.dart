@@ -1,4 +1,4 @@
-import 'package:my_market/class/category.dart';
+import 'category.dart';
 
 class Product {
   int id;
@@ -14,12 +14,12 @@ class Product {
     required this.name,
     required this.description,
     required this.price,
-    required this.stock, 
+    required this.stock,
     required this.image,
-    this.category
+    this.category,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json){
+  factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: int.parse(json['id'].toString()),
       name: json['name'],
@@ -27,8 +27,10 @@ class Product {
       price: double.parse(json['price'].toString()),
       stock: int.parse(json['stock'].toString()),
       image: json['image'] ?? '',
-      category: (json['categories'] as List?)?.map((e) => Category.fromJson(e)).toList(),
+      category:
+          (json['categories'] as List?)
+              ?.map((e) => Category.fromJson(e))
+              .toList(),
     );
   }
-
 }

@@ -13,12 +13,12 @@ class HomeCustomer extends StatefulWidget {
   }
 }
 
-class _HomeCustomer extends State<HomeCustomer>{
+class _HomeCustomer extends State<HomeCustomer> {
   List<Product> Ps = [];
 
   Future<void> fetchData() async {
     final response = await http.post(
-      Uri.parse("https://ubaya.xyz/flutter/160422029/myMarket_productlist.php")
+      Uri.parse("https://ubaya.xyz/flutter/160422029/myMarket_productlist.php"),
     );
 
     if (response.statusCode == 200) {
@@ -39,14 +39,13 @@ class _HomeCustomer extends State<HomeCustomer>{
     }
   }
 
-
-  @override 
+  @override
   void initState() {
     super.initState();
     fetchData();
   }
 
-  Widget DaftarProduct(List<Product> products){
+  Widget DaftarProduct(List<Product> products) {
     return ListView.builder(
       itemCount: products.length,
       itemBuilder: (BuildContext ctxt, int index) {
@@ -55,36 +54,34 @@ class _HomeCustomer extends State<HomeCustomer>{
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               ListTile(
-                leading: (products[index].image != '') ? Image.network(
-                  products[index].image,
-                  width: 100,
-                  height: 200,
-                  errorBuilder: (context, error, stackTrace){
-                    return const Icon(Icons.image, size: 70);
-                  },
-                ) : const Icon(Icons.ac_unit_rounded),
+                leading:
+                    (products[index].image != '')
+                        ? Image.network(
+                          products[index].image,
+                          width: 100,
+                          height: 200,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.image, size: 70);
+                          },
+                        )
+                        : const Icon(Icons.ac_unit_rounded),
                 title: GestureDetector(
-                  child: Text(
-                    products[index].name
-                  ),
+                  child: Text(products[index].name),
                   // onTap: (){
                   //   Navigator.push(context, MaterialPageRoute(builder: (context)=>detailProduct()));
                   // },
                 ),
-                subtitle: Text(
-                  "Rp ${products[index].price}"
-                ),
-              )
+                subtitle: Text("Rp ${products[index].price}"),
+              ),
             ],
-            
-          )
+          ),
         );
-      }
+      },
     );
-    }
+  }
 
-  @override 
-  Widget build(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         child: Row(
@@ -92,8 +89,11 @@ class _HomeCustomer extends State<HomeCustomer>{
             SizedBox(
               height: MediaQuery.of(context).size.height - 200,
               width: MediaQuery.of(context).size.width,
-              child: (Ps.isNotEmpty) ? DaftarProduct(Ps) : const Text("Product Tidak Tersedia")
-            )
+              child:
+                  (Ps.isNotEmpty)
+                      ? DaftarProduct(Ps)
+                      : const Text("Product Tidak Tersedia"),
+            ),
           ],
         ),
       ),
