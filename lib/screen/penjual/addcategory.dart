@@ -11,29 +11,50 @@ class AddCategoryPage extends StatefulWidget {
 
 class _AddCategoryPageState extends State<AddCategoryPage> {
   final _formKey = GlobalKey<FormState>();
-  String _name = '';
+  final TextEditingController _controller = TextEditingController();
 
   Future<void> submitCategory() async {
-    final res = await http.post(
-      Uri.parse('https://ubaya.xyz/flutter/160422029/myMarket_addcategory.php'),
-      body: {'name': _name},
-    );
+    String name = _controller.text.trim();
 
-    if (res.statusCode == 200) {
-      final json = jsonDecode(res.body);
-      if (json['result'] == 'success') {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Kategori berhasil ditambahkan')),
-        );
-        Navigator.pop(context); // go back to list
+    if (name.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Nama kategori tidak boleh kosong")),
+      );
+      return;
+    }
+
+    try {
+      final res = await http.post(
+        Uri.parse(
+          'https://ubaya.xyz/flutter/160422029/myMarket_addcategory.php',
+        ),
+        body: {'name': name},
+      );
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (data['result'] == 'success') {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Kategori berhasil ditambahkan")),
+          );
+          Navigator.pop(context); // Go back
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Gagal: ${data['message']}")));
+        }
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal: ${json['message']}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error ${res.statusCode}: Gagal koneksi ke server"),
+          ),
+        );
       }
-    } else {
-      throw Exception('Gagal koneksi ke server');
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Terjadi kesalahan: $e")));
     }
   }
 
@@ -42,17 +63,19 @@ class _AddCategoryPageState extends State<AddCategoryPage> {
     return Scaffold(
       appBar: AppBar(title: const Text("Tambah Kategori")),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
               TextFormField(
+                controller: _controller,
                 decoration: const InputDecoration(labelText: 'Nama Kategori'),
-                onChanged: (value) => _name = value,
                 validator:
                     (value) =>
-                        value == null || value.isEmpty ? 'Wajib diisi' : null,
+                        value == null || value.trim().isEmpty
+                            ? 'Wajib diisi'
+                            : null,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
