@@ -43,7 +43,7 @@ class _LoginState extends State<Login> {
     //SEMENTARA MASIH PAKE LOCAL, IP NYA DIGANTI SESUAI LAPTOP MASING-MASING, 
     //login.php TARUH DI HTDOCS DAN URL SESUAIKAN DENGAN LOKASI login.php
     final response = await http.post(
-      Uri.parse("http://192.168.1.9/ET/login.php"),
+      Uri.parse("https://ubaya.xyz/flutter/160422029/myMarket_login.php"),
       body: {'email': _user_email, 'password': _user_password}
     );
 

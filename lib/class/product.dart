@@ -21,13 +21,14 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json){
     return Product(
-      id: json['id'], 
-      name: json['name'], 
-      description: json['description'], 
-      price: json['price'], 
-      stock: json['stock'], 
-      image: json['image'],
+      id: int.parse(json['id'].toString()),
+      name: json['name'],
+      description: json['description'],
+      price: double.parse(json['price'].toString()),
+      stock: int.parse(json['stock'].toString()),
+      image: json['image'] ?? '',
       category: (json['categories'] as List?)?.map((e) => Category.fromJson(e)).toList(),
     );
   }
+
 }

@@ -37,7 +37,7 @@ class _RegisterState extends State<Register> {
   void Submit() async{
 
     final response = await http.post(
-      Uri.parse("http://192.168.1.9/ET/register.php"),
+      Uri.parse("https://ubaya.xyz/flutter/160422029/myMarket_register.php"),
       body: {'name': _user_name, 'email': _user_email, 'password': _user_password, 'role': _user_role}
     );
 
