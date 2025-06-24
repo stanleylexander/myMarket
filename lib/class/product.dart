@@ -32,9 +32,10 @@ class Product {
       stock: int.parse(json['stock'].toString()),
       image: json['image'] ?? '',
       category:
-          (json['categories'] as List?)
+          (json['category'] as List?)
               ?.map((e) => Category.fromJson(e))
               .toList(),
+
       sellerName: json['seller_name'],
       sellerId:
           json['seller_id'] != null

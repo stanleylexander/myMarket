@@ -73,7 +73,6 @@ class _HomeCustomerState extends State<HomeCustomer> {
       } else {
         filteredProducts =
             allProducts.where((p) {
-              // Cek apakah list kategori produk mengandung ID yang dipilih
               return p.category?.any((c) => c.id == categoryId) ?? false;
             }).toList();
       }
