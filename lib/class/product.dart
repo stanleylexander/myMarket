@@ -8,6 +8,8 @@ class Product {
   int stock;
   String image;
   List<Category>? category;
+  String? sellerName;
+  int? sellerId;
 
   Product({
     required this.id,
@@ -17,6 +19,8 @@ class Product {
     required this.stock,
     required this.image,
     this.category,
+    this.sellerName,
+    this.sellerId,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -31,6 +35,11 @@ class Product {
           (json['categories'] as List?)
               ?.map((e) => Category.fromJson(e))
               .toList(),
+      sellerName: json['seller_name'],
+      sellerId:
+          json['seller_id'] != null
+              ? int.parse(json['seller_id'].toString())
+              : null,
     );
   }
 }
