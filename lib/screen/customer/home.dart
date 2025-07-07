@@ -19,6 +19,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
   List<Product> filteredProducts = [];
   List<Category> categories = [];
   int? selectedCategoryId;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -28,40 +29,60 @@ class _HomeCustomerState extends State<HomeCustomer> {
   }
 
   Future<void> fetchData() async {
-    final response = await http.post(
-      Uri.parse("https://ubaya.xyz/flutter/160422029/myMarket_productlist.php"),
-    );
+    setState(() {
+      isLoading = true;
+    });
+    
+    try {
+      final response = await http.post(
+        Uri.parse("https://ubaya.xyz/flutter/160422029/myMarket_productlist.php"),
+      );
 
-    if (response.statusCode == 200) {
-      Map jsonResponse = jsonDecode(response.body);
-      if (jsonResponse['result'] == 'success') {
-        setState(() {
-          allProducts = List<Product>.from(
-            jsonResponse['data'].map((i) => Product.fromJson(i)),
-          );
-          filteredProducts = allProducts;
-        });
+      if (response.statusCode == 200) {
+        Map jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['result'] == 'success') {
+          setState(() {
+            allProducts = List<Product>.from(
+              jsonResponse['data'].map((i) => Product.fromJson(i)),
+            );
+            filteredProducts = allProducts;
+            isLoading = false;
+          });
+        }
+      } else {
+        throw Exception('Failed to connect API');
       }
-    } else {
-      throw Exception('Failed to connect API');
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading products: ${e.toString()}')),
+      );
     }
   }
 
   Future<void> fetchCategories() async {
-    final response = await http.post(
-      Uri.parse(
-        "https://ubaya.xyz/flutter/160422024/myMarket_categorylist.php",
-      ),
-    );
-    if (response.statusCode == 200) {
-      Map jsonResponse = jsonDecode(response.body);
-      if (jsonResponse['result'] == 'success') {
-        setState(() {
-          categories = List<Category>.from(
-            jsonResponse['data'].map((i) => Category.fromJson(i)),
-          );
-        });
+    try {
+      final response = await http.post(
+        Uri.parse(
+          "https://ubaya.xyz/flutter/160422024/myMarket_categorylist.php",
+        ),
+      );
+      if (response.statusCode == 200) {
+        Map jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['result'] == 'success') {
+          setState(() {
+            categories = List<Category>.from(
+              jsonResponse['data'].map((i) => Category.fromJson(i)),
+            );
+          });
+        }
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading categories: ${e.toString()}')),
+      );
     }
   }
 
@@ -71,96 +92,184 @@ class _HomeCustomerState extends State<HomeCustomer> {
       if (categoryId == null) {
         filteredProducts = allProducts;
       } else {
-        filteredProducts =
-            allProducts.where((p) {
-              return p.category?.any((c) => c.id == categoryId) ?? false;
-            }).toList();
+        filteredProducts = allProducts.where((p) {
+          return p.category?.any((c) => c.id == categoryId) ?? false;
+        }).toList();
       }
     });
   }
 
-  Widget DaftarProduct(List<Product> products) {
-    return ListView.builder(
-      itemCount: products.length,
-      itemBuilder: (BuildContext ctxt, int index) {
-        return Card(
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: ListTile(
-            leading:
-                (products[index].image.isNotEmpty)
-                    ? Image.network(
-                      products[index].image,
-                      width: 80,
-                      height: 80,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(Icons.image, size: 50);
-                      },
-                    )
-                    : const Icon(Icons.shopping_bag_outlined, size: 50),
-            title: Text(
-              products[index].name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text("Rp ${products[index].price.toStringAsFixed(0)}"),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) =>
-                          ProductDetailScreen(productId: products[index].id),
-                ),
-              );
-            },
+  Widget _buildProductGridItem(Product product) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(productId: product.id),
           ),
         );
       },
+      child: Card(
+        elevation: 2,
+        margin: const EdgeInsets.all(4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AspectRatio(
+                aspectRatio: 1,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: product.image.isNotEmpty
+                      ? Image.network(
+                          product.image,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Icon(Icons.shopping_bag, size: 30, color: Colors.grey),
+                              ),
+                            );
+                          },
+                        )
+                      : Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: Icon(Icons.shopping_bag, size: 30, color: Colors.grey),
+                          ),
+                        ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                product.name,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "Rp ${product.price.toStringAsFixed(0)}",
+                style: TextStyle(
+                  fontSize: 22,
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProductGrid() {
+    if (isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (filteredProducts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
+            const SizedBox(height: 13),
+            Text(
+              allProducts.isEmpty ? "Loading products..." : "No products found",
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            if (allProducts.isNotEmpty)
+              TextButton(
+                onPressed: () => _filterProducts(null),
+                child: const Text('Reset filter'),
+              ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: fetchData,
+      child: GridView.builder(
+        padding: const EdgeInsets.all(8),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 6, // 6 columns
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 0.75, // Adjust height box
+        ),
+        itemCount: filteredProducts.length,
+        itemBuilder: (context, index) {
+          return _buildProductGridItem(filteredProducts[index]);
+        },
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: DropdownButtonFormField<int>(
-            decoration: const InputDecoration(
-              labelText: 'Filter Berdasarkan Kategori',
-              border: OutlineInputBorder(),
-            ),
-            value: selectedCategoryId,
-            items: [
-              const DropdownMenuItem<int>(
-                value: null,
-                child: Text("Semua Kategori"),
-              ),
-              ...categories.map((Category category) {
-                return DropdownMenuItem<int>(
-                  value: category.id,
-                  child: Text(category.name),
-                );
-              }).toList(),
-            ],
-            onChanged: (int? newValue) {
-              _filterProducts(newValue);
-            },
-          ),
-        ),
-        Expanded(
-          child:
-              filteredProducts.isNotEmpty
-                  ? DaftarProduct(filteredProducts)
-                  : Center(
-                    child: Text(
-                      allProducts.isEmpty
-                          ? "Memuat data..."
-                          : "Produk tidak ditemukan",
-                    ),
+    return Scaffold(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
-        ),
-      ],
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: DropdownButtonFormField<int>(
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Filter by Category',
+                    border: InputBorder.none,
+                  ),
+                  value: selectedCategoryId,
+                  items: [
+                    const DropdownMenuItem<int>(
+                      value: null,
+                      child: Text("All Categories"),
+                    ),
+                    ...categories.map((Category category) {
+                      return DropdownMenuItem<int>(
+                        value: category.id,
+                        child: Text(category.name),
+                      );
+                    }).toList(),
+                  ],
+                  onChanged: (int? newValue) {
+                    _filterProducts(newValue);
+                  },
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: _buildProductGrid(),
+          ),
+        ],
+      ),
     );
   }
 }
