@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:my_market/class/chat_message.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // Import the model
 
 class ChatPage extends StatefulWidget {
@@ -13,54 +17,65 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _textController = TextEditingController();
 
   List<ChatMessage> messages = [];
-  int myUserId = 2; // Change this to the logged-in user's ID
+  int myUserId = 0;
 
   @override
   void initState() {
     super.initState();
-    fetchMessages(); // You would fetch from API here
+    loadUserId(); // <-- fetch from SharedPreferences
+  }
+
+  void loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      myUserId = prefs.getInt('user_id') ?? 0;
+    });
+    fetchMessages();
   }
 
   void fetchMessages() async {
-    // TODO: Replace this with real API call
-    setState(() {
-      messages = [
-        ChatMessage(
-          id: 1,
-          text: "Hello there!",
-          userId: 1,
-          username: "Seller",
-          timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-        ),
-        ChatMessage(
-          id: 2,
-          text: "Hi! I'm interested in your product.",
-          userId: 2,
-          username: "Customer",
-          timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-        ),
-      ];
-    });
+    final url = Uri.parse(
+      'https://ubaya.xyz/flutter/160422029/myMarket_getChat.php',
+    );
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          messages = data.map((item) => ChatMessage.fromJson(item)).toList();
+        });
+      } else {
+        debugPrint('Error loading chat: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching messages: $e');
+    }
   }
 
-  void sendMessage() {
+  void sendMessage() async {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      messages.add(
-        ChatMessage(
-          id: messages.length + 1,
-          text: text,
-          userId: myUserId,
-          username: "You",
-          timestamp: DateTime.now(),
-        ),
-      );
-      _textController.clear();
-    });
+    final url = Uri.parse(
+      'https://ubaya.xyz/flutter/160422029/myMarket_sendChat.php',
+    );
 
-    // TODO: Send to backend
+    try {
+      final response = await http.post(
+        url,
+        body: {'text': text, 'user_id': myUserId.toString()},
+      );
+
+      final result = jsonDecode(response.body);
+      if (result['status'] == 'success') {
+        _textController.clear();
+        fetchMessages(); // Refresh the chat after sending
+      } else {
+        debugPrint('Failed to send: ${result['message']}');
+      }
+    } catch (e) {
+      debugPrint('Error sending message: $e');
+    }
   }
 
   Widget buildMessage(ChatMessage msg) {

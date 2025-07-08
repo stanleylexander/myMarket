@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_market/chat.dart';
 import 'package:my_market/screen/login.dart';
 import 'package:my_market/screen/penjual/kategori.dart';
 import 'package:my_market/screen/penjual/produk.dart';
@@ -40,7 +41,21 @@ class _HomePenjualState extends State<HomePenjual> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('HomePenjual')),
+      appBar: AppBar(
+        title: const Text('HomePenjual'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.chat),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChatPage()),
+              );
+            },
+          ),
+        ],
+      ),
+
       drawer: myDrawer(),
       body: const Center(child: Text("This is HomePenjual")),
     );
