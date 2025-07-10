@@ -17,7 +17,8 @@ class PrivateChatPage extends StatefulWidget {
 class _PrivateChatPageState extends State<PrivateChatPage> {
   List messages = [];
   TextEditingController controller = TextEditingController();
-  int? userId;
+  // int? userId;
+  String userId = "";
 
   @override
   void initState() {
@@ -27,7 +28,7 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
 
   Future<void> loadUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    userId = prefs.getInt("user_id");
+    userId = prefs.getString("user_id") ?? '';
     fetchMessages();
   }
 
@@ -36,9 +37,9 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
 
     final response = await http.post(
       Uri.parse(
-        "https://ubaya.xyz/flutter/160422024/myMarket_getPrivateChat.php",
+        "https://ubaya.xyz/flutter/160422029/MyMarket_getPrivateChat.php",
       ),
-      body: {'user1': userId.toString(), 'user2': widget.receiverId.toString()},
+      body: {'user_id': userId.toString(), 'receiver_id': widget.receiverId.toString()},
     );
 
     if (response.statusCode == 200) {
@@ -53,7 +54,7 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
 
     final response = await http.post(
       Uri.parse(
-        "https://ubaya.xyz/flutter/160422024/myMarket_sendPrivateChat.php",
+        "https://ubaya.xyz/flutter/160422029/MyMarket_sendPrivateChat.php",
       ),
       body: {
         'text': controller.text,
