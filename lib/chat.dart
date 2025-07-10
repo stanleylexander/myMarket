@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:my_market/class/chat_message.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // Import the model
 
 class ChatPage extends StatefulWidget {
@@ -11,56 +15,113 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _textController = TextEditingController();
+  final ScrollController _scrollController =
+      ScrollController(); //scroll controller (gk diajari) buat nantik chat nya auto kebawah keren ga tuh
 
   List<ChatMessage> messages = [];
-  int myUserId = 2; // Change this to the logged-in user's ID
+  int myUserId = 0;
 
   @override
   void initState() {
     super.initState();
-    fetchMessages(); // You would fetch from API here
+    loadUserId(); //ambil Id dari email yang sudah login
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void loadUserId() async {
+    //ambil id nya dari email dr login,
+    final prefs = await SharedPreferences.getInstance();
+    String? email = prefs.getString('_user_email');
+
+    if (email == null || email.isEmpty) {
+      print("Email not found in SharedPreferences");
+      return;
+    }
+
+    final url = Uri.parse(
+      'https://ubaya.xyz/flutter/160422029/myMarket_getIdEmail.php', //webservice nya ini
+    );
+
+    try {
+      final response = await http.post(url, body: {'email': email});
+      final result = jsonDecode(response.body);
+
+      if (result['status'] == 'success') {
+        setState(() {
+          myUserId = int.parse(
+            result['user_id'].toString(),
+          ); //kalau dapet, nanti disimpen di myUserID
+        });
+        fetchMessages();
+      } else {
+        print("Failed to fetch user_id: ${result['message']}");
+      }
+    } catch (e) {
+      print("Error fetching user_id: $e");
+    }
   }
 
   void fetchMessages() async {
-    // TODO: Replace this with real API call
-    setState(() {
-      messages = [
-        ChatMessage(
-          id: 1,
-          text: "Hello there!",
-          userId: 1,
-          username: "Seller",
-          timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-        ),
-        ChatMessage(
-          id: 2,
-          text: "Hi! I'm interested in your product.",
-          userId: 2,
-          username: "Customer",
-          timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
-        ),
-      ];
-    });
+    final url = Uri.parse(
+      'https://ubaya.xyz/flutter/160422029/myMarket_getChat.php', //ambil dulu disini
+    );
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        setState(() {
+          messages = data.map((item) => ChatMessage.fromJson(item)).toList();
+        });
+
+        //scroll ke bawah kalau ada new message
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut, //ini gatau yo, ease out buat animasi tok
+            );
+          }
+        });
+      } else {
+        debugPrint('Error loading chat: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching messages: $e');
+    }
   }
 
-  void sendMessage() {
+  void sendMessage() async {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      messages.add(
-        ChatMessage(
-          id: messages.length + 1,
-          text: text,
-          userId: myUserId,
-          username: "You",
-          timestamp: DateTime.now(),
-        ),
-      );
-      _textController.clear();
-    });
+    final url = Uri.parse(
+      'https://ubaya.xyz/flutter/160422029/myMarket_sendChat.php',
+    );
 
-    // TODO: Send to backend
+    try {
+      final response = await http.post(
+        url,
+        body: {'text': text, 'user_id': myUserId.toString()},
+      );
+
+      final result = jsonDecode(response.body);
+      if (result['status'] == 'success') {
+        _textController.clear();
+        fetchMessages(); //refresh habis di send
+      } else {
+        debugPrint('Failed to send: ${result['message']}');
+      }
+    } catch (e) {
+      debugPrint('Error sending message: $e');
+    }
   }
 
   Widget buildMessage(ChatMessage msg) {
@@ -99,6 +160,7 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Expanded(
             child: ListView.builder(
+              controller: _scrollController,
               itemCount: messages.length,
               itemBuilder: (context, index) => buildMessage(messages[index]),
             ),
@@ -112,7 +174,7 @@ class _ChatPageState extends State<ChatPage> {
                   child: TextField(
                     controller: _textController,
                     decoration: const InputDecoration(
-                      hintText: "Type a message...",
+                      hintText: "Ketik Pesan anda di sini",
                     ),
                   ),
                 ),
