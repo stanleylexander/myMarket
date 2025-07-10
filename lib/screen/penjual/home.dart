@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_market/chat.dart';
-import 'package:my_market/class/product.dart'; 
+import 'package:my_market/class/product.dart';
 import 'package:my_market/main.dart';
 import 'package:my_market/screen/login.dart';
 import 'package:my_market/screen/penjual/kategori.dart';
 import 'package:my_market/screen/penjual/produk.dart';
+// TAMBAHKAN IMPORT UNTUK EDIT PAGE
+import 'package:my_market/screen/penjual/edit_product.dart';
 
 class HomePenjual extends StatefulWidget {
   final bool loginStatus;
@@ -57,7 +59,10 @@ class _HomePenjualState extends State<HomePenjual> {
 
     try {
       final response = await http.post(
-        Uri.parse("https://ubaya.xyz/flutter/160422029/myMarket_productlistpenjual.php"), 
+        Uri.parse(
+          "https://ubaya.xyz/flutter/160422029/myMarket_productlistpenjual.php",
+        ),
+        // Sesuai kode Anda, parameter untuk mengambil list adalah 'user_id'
         body: {'user_id': _userId},
       );
 
@@ -73,6 +78,9 @@ class _HomePenjualState extends State<HomePenjual> {
           });
         } else {
           debugPrint("Fetch failed: ${body['message']}");
+          setState(() {
+            _products.clear();
+          });
         }
       } else {
         debugPrint("Server error: ${response.statusCode}");
@@ -86,16 +94,73 @@ class _HomePenjualState extends State<HomePenjual> {
     }
   }
 
+  void _confirmDelete(int productId) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text("Hapus Produk"),
+            content: const Text(
+              "Apakah Anda yakin ingin menghapus produk ini?",
+            ),
+            actions: [
+              TextButton(
+                child: const Text("Batal"),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              TextButton(
+                child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Tutup dialog
+                  _deleteProduct(productId);
+                },
+              ),
+            ],
+          ),
+    );
+  }
+
+  Future<void> _deleteProduct(int productId) async {
+    final response = await http.post(
+      Uri.parse(
+        "https://ubaya.xyz/flutter/160422029/myMarket_deleteproduct.php",
+      ),
+      body: {'id': productId.toString()},
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      if (result['result'] == 'success') {
+        setState(() {
+          _products.removeWhere((product) => product.id == productId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Produk berhasil dihapus")),
+        );
+      } else {
+        _showError(result['message']);
+      }
+    } else {
+      _showError("Gagal menghapus produk (kode: ${response.statusCode})");
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text("Error: $message")));
+  }
+
   Future<void> doLogout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_id');
-    await prefs.remove('user_email');
-    await prefs.remove('user_name');
-    await prefs.remove('user_role');
+    await prefs.clear(); // Cara lebih cepat untuk menghapus semua session
 
-    Navigator.pushReplacement(
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => MyLogin()),
+      MaterialPageRoute(builder: (context) => MyLogin()),
+      (Route<dynamic> route) => false,
     );
   }
 
@@ -103,83 +168,91 @@ class _HomePenjualState extends State<HomePenjual> {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          // Add navigation to edit product if needed
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: product.image.isNotEmpty
-                    ? ClipRRect(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child:
+                  product.image.isNotEmpty
+                      ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
                           product.image,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
-                            return const Icon(Icons.shopping_bag, size: 40);
+                            return const Icon(
+                              Icons.broken_image,
+                              size: 40,
+                              color: Colors.grey,
+                            );
                           },
                         ),
                       )
-                    : const Icon(Icons.shopping_bag, size: 40),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      : const Icon(Icons.shopping_bag, size: 40),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Rp ${product.price.toStringAsFixed(0).replaceAllMapped(
-                        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
-                        (Match m) => '${m[1]}.',
-                      )}",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Rp ${product.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Theme.of(context).primaryColor,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Stok: ${product.stock}",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Stok: ${product.stock}",
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
               ),
-              IconButton(
-                icon: const Icon(Icons.edit, color: Colors.blue),
-                onPressed: () {
-                  // Add edit functionality
-                },
-              ),
-            ],
-          ),
+            ),
+
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.blueAccent),
+              tooltip: 'Edit Produk',
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProductPage(product: product),
+                  ),
+                );
+                if (result == true) {
+                  fetchProducts();
+                }
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.redAccent),
+              tooltip: 'Hapus Produk',
+              onPressed: () {
+                _confirmDelete(product.id);
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -190,11 +263,7 @@ class _HomePenjualState extends State<HomePenjual> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            'assets/images/empty_product.png', // Add your own empty state image
-            width: 200,
-            height: 200,
-          ),
+          Icon(Icons.inventory_2_outlined, size: 150, color: Colors.grey[300]),
           const SizedBox(height: 16),
           const Text(
             "Belum ada produk",
@@ -207,22 +276,23 @@ class _HomePenjualState extends State<HomePenjual> {
           const SizedBox(height: 8),
           const Text(
             "Tambahkan produk pertama Anda sekarang",
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey),
           ),
           const SizedBox(height: 16),
           ElevatedButton.icon(
             icon: const Icon(Icons.add),
             label: const Text("Tambah Produk"),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const InputProductPage(),
                 ),
               );
+              // Jika berhasil menambah produk, refresh list
+              if (result == true) {
+                fetchProducts();
+              }
             },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -242,10 +312,10 @@ class _HomePenjualState extends State<HomePenjual> {
       appBar: AppBar(
         title: const Text('Dashboard Penjual'),
         centerTitle: true,
-        elevation: 0,
+        elevation: 1,
         actions: [
           IconButton(
-            icon: const Icon(Icons.chat),
+            icon: const Icon(Icons.chat_bubble_outline),
             tooltip: 'Group Chat',
             onPressed: () {
               Navigator.push(
@@ -260,13 +330,15 @@ class _HomePenjualState extends State<HomePenjual> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: Theme.of(context).primaryColor,
         child: const Icon(Icons.add, color: Colors.white),
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const InputProductPage(),
-            ),
+            MaterialPageRoute(builder: (context) => const InputProductPage()),
           );
+          // Jika berhasil menambah produk dari FAB, refresh list
+          if (result == true) {
+            fetchProducts();
+          }
         },
         tooltip: 'Tambah Produk',
       ),
@@ -313,20 +385,21 @@ class _HomePenjualState extends State<HomePenjual> {
             ),
           ),
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _products.isEmpty
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _products.isEmpty
                     ? _buildEmptyState()
                     : RefreshIndicator(
-                        onRefresh: fetchProducts,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.only(bottom: 80),
-                          itemCount: _products.length,
-                          itemBuilder: (context, index) {
-                            return _buildProductCard(_products[index]);
-                          },
-                        ),
+                      onRefresh: fetchProducts,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 80),
+                        itemCount: _products.length,
+                        itemBuilder: (context, index) {
+                          return _buildProductCard(_products[index]);
+                        },
                       ),
+                    ),
           ),
         ],
       ),
@@ -339,44 +412,36 @@ class _HomePenjualState extends State<HomePenjual> {
         padding: EdgeInsets.zero,
         children: [
           UserAccountsDrawerHeader(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-            ),
+            decoration: BoxDecoration(color: Theme.of(context).primaryColor),
             accountName: Text(
               active_user,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             accountEmail: Text(active_user_email),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
               child: Text(
                 active_user.isNotEmpty ? active_user[0].toUpperCase() : "P",
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: Theme.of(context).primaryColorDark,
                 ),
               ),
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.shop, color: Colors.blue),
-            title: const Text("Kelola Produk"),
+            leading: const Icon(Icons.dashboard_customize, color: Colors.blue),
+            title: const Text("Dashboard"),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const InputProductPage(),
-                ),
-              );
+              Navigator.pop(context); // Tutup drawer
             },
           ),
           ListTile(
             leading: const Icon(Icons.category, color: Colors.green),
             title: const Text("Kelola Kategori"),
             onTap: () {
+              Navigator.pop(context); // Tutup drawer dulu
               Navigator.push(
                 context,
                 MaterialPageRoute(
