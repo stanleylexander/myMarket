@@ -19,6 +19,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Product? product;
   bool isLoading = true;
   String errorMessage = '';
+  int quantity = 1;
 
   @override
   void initState() {
@@ -27,145 +28,304 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> fetchProductDetail() async {
-    final response = await http.post(
-      Uri.parse(
-        "https://ubaya.xyz/flutter/160422024/myMarket_productDetail.php",
-      ),
-      body: {"product_id": widget.productId.toString()},
-    );
+    setState(() {
+      isLoading = true;
+    });
+    
+    try {
+      final response = await http.post(
+        Uri.parse("https://ubaya.xyz/flutter/160422024/myMarket_productDetail.php"),
+        body: {"product_id": widget.productId.toString()},
+      );
 
-    if (response.statusCode == 200) {
-      Map jsonResponse = jsonDecode(response.body);
-      if (jsonResponse['result'] == 'success') {
-        setState(() {
-          product = Product.fromJson(jsonResponse['data']);
-          isLoading = false;
-        });
+      if (response.statusCode == 200) {
+        Map jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['result'] == 'success') {
+          setState(() {
+            product = Product.fromJson(jsonResponse['data']);
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            errorMessage = jsonResponse['message'] ?? 'Failed to load product';
+            isLoading = false;
+          });
+        }
       } else {
-        setState(() {
-          errorMessage = jsonResponse['message'];
-          isLoading = false;
-        });
+        throw Exception('Failed to load product');
       }
-    } else {
+    } catch (e) {
       setState(() {
-        errorMessage = 'Failed to load data from server.';
+        errorMessage = 'Failed to connect to server';
         isLoading = false;
       });
     }
   }
 
-  Widget buildCategoryChips(List<Category> categories) {
+  Widget _buildCategoryChips(List<Category> categories) {
     return Wrap(
-      spacing: 6,
-      children:
-          categories
-              .map(
-                (cat) => Chip(
-                  label: Text(cat.name),
-                  backgroundColor: Colors.blue.shade100,
+      spacing: 8,
+      runSpacing: 6,
+      children: categories
+          .map((cat) => Chip(
+                label: Text(cat.name, style: const TextStyle(fontSize: 12)),
+                backgroundColor: Colors.blue[50],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              )
-              .toList(),
+              ))
+          .toList(), // <- letakkan di luar map
+    );
+  }
+
+
+  Widget _buildImageSection() {
+    return Container(
+      height: 300,
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: product!.image.isNotEmpty
+          ? Image.network(
+              product!.image,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.broken_image, size: 60, color: Colors.grey[400]),
+                      const SizedBox(height: 8),
+                      Text('Gambar tidak tersedia', 
+                        style: TextStyle(color: Colors.grey[600])),
+                    ],
+                  ),
+                );
+              },
+            )
+          : Center(
+              child: Icon(Icons.shopping_bag, size: 80, color: Colors.grey[400]),
+            ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          product!.name,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Text(
+              "Rp ${product!.price.toStringAsFixed(0).replaceAllMapped(
+                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
+                (Match m) => '${m[1]}.',
+              )}",
+              style: TextStyle(
+                fontSize: 20,
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                "Stok: ${product!.stock}",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.green[800],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget _buildQuantitySelector() {
+    return Row(
+      children: [
+        const Text('Jumlah:', style: TextStyle(fontSize: 16)),
+        const SizedBox(width: 16),
+        IconButton(
+          icon: const Icon(Icons.remove),
+          onPressed: () {
+            if (quantity > 1) {
+              setState(() => quantity--);
+            }
+          },
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.grey[200],
+          ),
+        ),
+        Container(
+          width: 40,
+          alignment: Alignment.center,
+          child: Text(quantity.toString(), style: const TextStyle(fontSize: 16)),
+        ),
+        IconButton(
+          icon: const Icon(Icons.add),
+          onPressed: () {
+            if (quantity < product!.stock) {
+              setState(() => quantity++);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Stok tidak mencukupi')),
+              );
+            }
+          },
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.grey[200],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDescriptionSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Deskripsi Produk',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          product!.description.isNotEmpty 
+            ? product!.description 
+            : 'Tidak ada deskripsi produk',
+          style: const TextStyle(fontSize: 15, height: 1.5),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddToCartButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.shopping_cart),
+        label: const Text(
+          'Tambah ke Keranjang',
+          style: TextStyle(fontSize: 16),
+        ),
+        onPressed: () {
+          CartManager.add(
+            CartItem(
+              productId: product!.id,
+              name: product!.name,
+              price: product!.price,
+              quantity: quantity,
+              image: product!.image,
+            ),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Produk ditambahkan ke keranjang'),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).primaryColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Detail Produk')),
-      body:
-          isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : product == null
-              ? Center(child: Text(errorMessage))
-              : Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ListView(
-                  children: [
-                    if (product!.image.isNotEmpty)
-                      Image.network(
-                        product!.image,
-                        height: 200,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(Icons.broken_image, size: 100);
-                        },
-                      )
-                    else
-                      const Icon(Icons.shopping_bag_outlined, size: 100),
-                    const SizedBox(height: 16),
-                    Text(
-                      product!.name,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+      appBar: AppBar(
+        title: const Text('Detail Produk'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : product == null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, size: 60, color: Colors.red[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        errorMessage,
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[600],
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Rp ${product!.price.toStringAsFixed(0)}",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Colors.green,
-                        fontWeight: FontWeight.w500,
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: fetchProductDetail,
+                        child: const Text('Coba Lagi'),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Stok: ${product!.stock}",
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      product!.description,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.add_shopping_cart),
-                      label: const Text("Tambah ke Keranjang"),
-                      onPressed: () {
-                        CartManager.add(
-                          CartItem(
-                            productId: product!.id,
-                            name: product!.name,
-                            price: product!.price,
-                            quantity: 1,
-                            image: product!.image,
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildImageSection(),
+                      const SizedBox(height: 24),
+                      _buildHeaderSection(),
+                      const SizedBox(height: 16),
+                      _buildQuantitySelector(),
+                      const SizedBox(height: 24),
+                      _buildDescriptionSection(),
+                      const SizedBox(height: 24),
+                      if (product!.category != null && product!.category!.isNotEmpty) ...[
+                        const Text(
+                          'Kategori',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Produk ditambahkan ke keranjang"),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-                    if (product!.category != null &&
-                        product!.category!.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Kategori:",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          buildCategoryChips(product!.category!),
-                        ],
-                      ),
-                  ],
+                        ),
+                        const SizedBox(height: 8),
+                        _buildCategoryChips(product!.category!),
+                        const SizedBox(height: 24),
+                      ],
+                      _buildAddToCartButton(),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
                 ),
-              ),
     );
   }
 }
