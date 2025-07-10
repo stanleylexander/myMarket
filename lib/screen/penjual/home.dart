@@ -64,6 +64,7 @@ class _HomePenjualState extends State<HomePenjual> {
         actions: [
           IconButton(
             icon: const Icon(Icons.chat),
+            tooltip: 'Group Chat',
             onPressed: () {
               Navigator.push(
                 context,

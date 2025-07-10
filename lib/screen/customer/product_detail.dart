@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:my_market/chat.dart';
 import 'package:my_market/class/cart_item.dart';
 import 'package:my_market/class/cart_manager.dart';
 import 'package:my_market/class/category.dart';
@@ -271,6 +272,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         centerTitle: true,
         elevation: 0,
       ),
+      floatingActionButton: FloatingActionButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ChatPage()), //gantien ke private chat
+        );
+      },
+      backgroundColor: const Color.fromARGB(255, 229, 227, 233),
+      child: const Icon(Icons.chat),
+      tooltip: 'Chat Penjual',
+    ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : product == null
