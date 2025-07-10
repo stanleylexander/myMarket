@@ -1,43 +1,54 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_market/chat.dart';
-import 'package:my_market/screen/customer/private_chat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:my_market/screen/customer/private_chat.dart';
 
-class ChatRoomList extends StatefulWidget {
-  const ChatRoomList({super.key});
+class ListChat extends StatefulWidget {
+  const ListChat({super.key});
 
   @override
-  State<ChatRoomList> createState() => _ChatRoomListState();
+  State<ListChat> createState() => _ListChatState();
 }
 
-class _ChatRoomListState extends State<ChatRoomList> {
-  List<Map<String, dynamic>> rooms = [];
-  int? userId;
+class _ListChatState extends State<ListChat> {
+  List<Map<String, dynamic>> buyers = [];
+  int? sellerId;
 
   @override
   void initState() {
     super.initState();
-    loadUserId();
+    loadSeller();
   }
 
-  Future<void> loadUserId() async {
+  Future<void> loadSeller() async {
     final prefs = await SharedPreferences.getInstance();
-    userId = prefs.getInt("user_id");
-    fetchRooms();
+    sellerId = int.tryParse(prefs.getString("user_id") ?? "");
+    if (sellerId != null) {
+      fetchBuyers();
+    }
   }
 
-  Future<void> fetchRooms() async {
+  Future<void> fetchBuyers() async {
     final response = await http.post(
-      Uri.parse("https://ubaya.xyz/flutter/160422024/myMarket_chatRooms.php"),
-      body: {"user_id": userId.toString()},
+      Uri.parse(
+        "https://ubaya.xyz/flutter/160422029/myMarket_listCustomer.php",
+      ),
+      body: {"user_id": sellerId.toString()},
     );
 
     if (response.statusCode == 200) {
+      final List raw = jsonDecode(response.body);
       setState(() {
-        rooms = List<Map<String, dynamic>>.from(jsonDecode(response.body));
+        buyers =
+            raw
+                .map(
+                  (e) => {
+                    "id": int.tryParse(e["id"].toString()) ?? 0,
+                    "name": e["name"] ?? "Pembeli",
+                  },
+                )
+                .toList();
       });
     }
   }
@@ -45,42 +56,24 @@ class _ChatRoomListState extends State<ChatRoomList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Chat")),
-      body: ListView(
-        children: [
-          // Group chat always on top
-          ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.group)),
-            title: const Text("Group Chat"),
-            subtitle: const Text("Klik untuk bergabung"),
+      appBar: AppBar(title: const Text("Chat dari Pembeli")),
+      body: ListView.builder(
+        itemCount: buyers.length,
+        itemBuilder: (context, index) {
+          final buyer = buyers[index];
+          return ListTile(
+            leading: const Icon(Icons.person),
+            title: Text(buyer["name"]),
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ChatPage()),
+                MaterialPageRoute(
+                  builder: (_) => PrivateChatPage(receiverId: buyer["id"]),
+                ),
               );
             },
-          ),
-          const Divider(),
-
-          // Loop through private chat rooms
-          ...rooms.map((room) {
-            return ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person)),
-              title: Text(room["other_name"] ?? "Pengguna"),
-              subtitle: Text(room["last_message"] ?? ""),
-              trailing: Text(room["last_time"] ?? ""),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (_) => PrivateChatPage(receiverId: room["other_id"]),
-                  ),
-                );
-              },
-            );
-          }).toList(),
-        ],
+          );
+        },
       ),
     );
   }

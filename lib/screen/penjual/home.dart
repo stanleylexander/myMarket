@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:my_market/screen/penjual/list_chat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:my_market/chat.dart';
 import 'package:my_market/class/product.dart';
@@ -447,6 +448,17 @@ class _HomePenjualState extends State<HomePenjual> {
                 MaterialPageRoute(
                   builder: (context) => const ListKategoriPage(),
                 ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.category, color: Colors.green),
+            title: const Text("Private Chat"),
+            onTap: () {
+              Navigator.pop(context); // Tutup drawer dulu
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ListChat()),
               );
             },
           ),
