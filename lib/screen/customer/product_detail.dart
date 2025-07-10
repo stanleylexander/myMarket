@@ -6,6 +6,7 @@ import 'package:my_market/class/cart_item.dart';
 import 'package:my_market/class/cart_manager.dart';
 import 'package:my_market/class/category.dart';
 import 'package:my_market/class/product.dart';
+import 'package:my_market/screen/customer/private_chat.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final int productId;
@@ -32,10 +33,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     setState(() {
       isLoading = true;
     });
-    
+
     try {
       final response = await http.post(
-        Uri.parse("https://ubaya.xyz/flutter/160422024/myMarket_productDetail.php"),
+        Uri.parse(
+          "https://ubaya.xyz/flutter/160422024/myMarket_productDetail.php",
+        ),
         body: {"product_id": widget.productId.toString()},
       );
 
@@ -67,15 +70,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Wrap(
       spacing: 8,
       runSpacing: 6,
-      children: categories
-          .map((cat) => Chip(
-                label: Text(cat.name, style: const TextStyle(fontSize: 12)),
-                backgroundColor: Colors.blue[50],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+      children:
+          categories
+              .map(
+                (cat) => Chip(
+                  label: Text(cat.name, style: const TextStyle(fontSize: 12)),
+                  backgroundColor: Colors.blue[50],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-              ))
-          .toList(),
+              )
+              .toList(),
     );
   }
 
@@ -88,27 +94,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: product!.image.isNotEmpty
-          ? Image.network(
-              product!.image,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.broken_image, size: 60, color: Colors.grey[400]),
-                      const SizedBox(height: 8),
-                      Text('Gambar tidak tersedia', 
-                        style: TextStyle(color: Colors.grey[600])),
-                    ],
+        child:
+            product!.image.isNotEmpty
+                ? Image.network(
+                  product!.image,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            size: 60,
+                            color: Colors.grey[400],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Gambar tidak tersedia',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                )
+                : Center(
+                  child: Icon(
+                    Icons.shopping_bag,
+                    size: 80,
+                    color: Colors.grey[400],
                   ),
-                );
-              },
-            )
-          : Center(
-              child: Icon(Icons.shopping_bag, size: 80, color: Colors.grey[400]),
-            ),
+                ),
       ),
     );
   }
@@ -119,17 +136,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       children: [
         Text(
           product!.name,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         Text(
-          "Rp ${product!.price.toStringAsFixed(0).replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
-            (Match m) => '${m[1]}.',
-          )}",
+          "Rp ${product!.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}",
           style: TextStyle(
             fontSize: 22,
             color: Theme.of(context).primaryColor,
@@ -147,10 +158,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               child: Text(
                 "Stok: ${product!.stock}",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.green[800],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.green[800]),
               ),
             ),
           ],
@@ -175,14 +183,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   setState(() => quantity--);
                 }
               },
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.grey[200],
-              ),
+              style: IconButton.styleFrom(backgroundColor: Colors.grey[200]),
             ),
             Container(
               width: 40,
               alignment: Alignment.center,
-              child: Text(quantity.toString(), style: const TextStyle(fontSize: 16)),
+              child: Text(
+                quantity.toString(),
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
             IconButton(
               icon: const Icon(Icons.add),
@@ -195,9 +204,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   );
                 }
               },
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.grey[200],
-              ),
+              style: IconButton.styleFrom(backgroundColor: Colors.grey[200]),
             ),
           ],
         ),
@@ -211,16 +218,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       children: [
         const Text(
           'Deskripsi Produk',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Text(
-          product!.description.isNotEmpty 
-            ? product!.description 
-            : 'Tidak ada deskripsi produk',
+          product!.description.isNotEmpty
+              ? product!.description
+              : 'Tidak ada deskripsi produk',
           style: const TextStyle(fontSize: 15, height: 1.5),
         ),
       ],
@@ -282,7 +286,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               child: _buildImageSection(),
             ),
           ),
-          
+
           // Right side - Details
           Flexible(
             flex: 6,
@@ -294,13 +298,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 const SizedBox(height: 24),
                 _buildDescriptionSection(),
                 const SizedBox(height: 24),
-                if (product!.category != null && product!.category!.isNotEmpty) ...[
+                if (product!.category != null &&
+                    product!.category!.isNotEmpty) ...[
                   const Text(
                     'Kategori',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   _buildCategoryChips(product!.category!),
@@ -332,10 +334,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           if (product!.category != null && product!.category!.isNotEmpty) ...[
             const Text(
               'Kategori',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             _buildCategoryChips(product!.category!),
@@ -358,43 +357,50 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         centerTitle: true,
         elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ChatPage()),
-          );
-        },
-        backgroundColor: const Color.fromARGB(255, 229, 227, 233),
-        child: const Icon(Icons.chat),
-        tooltip: 'Chat Penjual',
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : product == null
+      floatingActionButton:
+          product != null && product!.sellerId != null
+              ? FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) =>
+                              PrivateChatPage(receiverId: product!.sellerId!),
+                    ),
+                  );
+                },
+                backgroundColor: const Color.fromARGB(255, 229, 227, 233),
+                child: const Icon(Icons.chat),
+                tooltip: 'Chat Penjual',
+              )
+              : null,
+      body:
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : product == null
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline, size: 60, color: Colors.red[400]),
-                      const SizedBox(height: 16),
-                      Text(
-                        errorMessage,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: fetchProductDetail,
-                        child: const Text('Coba Lagi'),
-                      ),
-                    ],
-                  ),
-                )
-              : isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 60, color: Colors.red[400]),
+                    const SizedBox(height: 16),
+                    Text(
+                      errorMessage,
+                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: fetchProductDetail,
+                      child: const Text('Coba Lagi'),
+                    ),
+                  ],
+                ),
+              )
+              : isDesktop
+              ? _buildDesktopLayout()
+              : _buildMobileLayout(),
     );
   }
 }
