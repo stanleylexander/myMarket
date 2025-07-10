@@ -445,9 +445,7 @@ class _HomePenjualState extends State<HomePenjual> {
               Navigator.pop(context); // Tutup drawer dulu
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const ListKategoriPage(),
-                ),
+                MaterialPageRoute(builder: (context) => const KategoriPage()),
               );
             },
           ),
