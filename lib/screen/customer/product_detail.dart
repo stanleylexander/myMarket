@@ -75,14 +75,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ))
-          .toList(), // <- letakkan di luar map
+          .toList(),
     );
   }
 
-
   Widget _buildImageSection() {
     return Container(
-      height: 300,
+      constraints: const BoxConstraints(maxHeight: 500),
       decoration: BoxDecoration(
         color: Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
@@ -92,7 +91,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: product!.image.isNotEmpty
           ? Image.network(
               product!.image,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return Center(
                   child: Column(
@@ -125,23 +124,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
+        Text(
+          "Rp ${product!.price.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
+            (Match m) => '${m[1]}.',
+          )}",
+          style: TextStyle(
+            fontSize: 22,
+            color: Theme.of(context).primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
         Row(
           children: [
-            Text(
-              "Rp ${product!.price.toStringAsFixed(0).replaceAllMapped(
-                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
-                (Match m) => '${m[1]}.',
-              )}",
-              style: TextStyle(
-                fontSize: 20,
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: Colors.green[50],
                 borderRadius: BorderRadius.circular(20),
@@ -156,46 +155,51 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
       ],
     );
   }
 
   Widget _buildQuantitySelector() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Jumlah:', style: TextStyle(fontSize: 16)),
-        const SizedBox(width: 16),
-        IconButton(
-          icon: const Icon(Icons.remove),
-          onPressed: () {
-            if (quantity > 1) {
-              setState(() => quantity--);
-            }
-          },
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.grey[200],
-          ),
-        ),
-        Container(
-          width: 40,
-          alignment: Alignment.center,
-          child: Text(quantity.toString(), style: const TextStyle(fontSize: 16)),
-        ),
-        IconButton(
-          icon: const Icon(Icons.add),
-          onPressed: () {
-            if (quantity < product!.stock) {
-              setState(() => quantity++);
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Stok tidak mencukupi')),
-              );
-            }
-          },
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.grey[200],
-          ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.remove),
+              onPressed: () {
+                if (quantity > 1) {
+                  setState(() => quantity--);
+                }
+              },
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.grey[200],
+              ),
+            ),
+            Container(
+              width: 40,
+              alignment: Alignment.center,
+              child: Text(quantity.toString(), style: const TextStyle(fontSize: 16)),
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: () {
+                if (quantity < product!.stock) {
+                  setState(() => quantity++);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Stok tidak mencukupi')),
+                  );
+                }
+              },
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.grey[200],
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -264,8 +268,90 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
+  Widget _buildDesktopLayout() {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Left side - Image
+          Flexible(
+            flex: 4,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 24.0),
+              child: _buildImageSection(),
+            ),
+          ),
+          
+          // Right side - Details
+          Flexible(
+            flex: 6,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderSection(),
+                _buildQuantitySelector(),
+                const SizedBox(height: 24),
+                _buildDescriptionSection(),
+                const SizedBox(height: 24),
+                if (product!.category != null && product!.category!.isNotEmpty) ...[
+                  const Text(
+                    'Kategori',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildCategoryChips(product!.category!),
+                  const SizedBox(height: 24),
+                ],
+                _buildAddToCartButton(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildImageSection(),
+          const SizedBox(height: 24),
+          _buildHeaderSection(),
+          const SizedBox(height: 16),
+          _buildQuantitySelector(),
+          const SizedBox(height: 24),
+          _buildDescriptionSection(),
+          const SizedBox(height: 24),
+          if (product!.category != null && product!.category!.isNotEmpty) ...[
+            const Text(
+              'Kategori',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildCategoryChips(product!.category!),
+            const SizedBox(height: 24),
+          ],
+          _buildAddToCartButton(),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width > 600;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Produk'),
@@ -273,16 +359,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         elevation: 0,
       ),
       floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ChatPage()), //gantien ke private chat
-        );
-      },
-      backgroundColor: const Color.fromARGB(255, 229, 227, 233),
-      child: const Icon(Icons.chat),
-      tooltip: 'Chat Penjual',
-    ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatPage()),
+          );
+        },
+        backgroundColor: const Color.fromARGB(255, 229, 227, 233),
+        child: const Icon(Icons.chat),
+        tooltip: 'Chat Penjual',
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : product == null
@@ -308,36 +394,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ],
                   ),
                 )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildImageSection(),
-                      const SizedBox(height: 24),
-                      _buildHeaderSection(),
-                      const SizedBox(height: 16),
-                      _buildQuantitySelector(),
-                      const SizedBox(height: 24),
-                      _buildDescriptionSection(),
-                      const SizedBox(height: 24),
-                      if (product!.category != null && product!.category!.isNotEmpty) ...[
-                        const Text(
-                          'Kategori',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildCategoryChips(product!.category!),
-                        const SizedBox(height: 24),
-                      ],
-                      _buildAddToCartButton(),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
+              : isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
     );
   }
 }

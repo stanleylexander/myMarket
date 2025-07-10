@@ -31,7 +31,6 @@ class _HomeCustomerState extends State<HomeCustomer> {
 
     if (widget.loginStatus) {
       loginMessage = true;
-
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted) {
           setState(() {
@@ -79,9 +78,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
   Future<void> fetchCategories() async {
     try {
       final response = await http.post(
-        Uri.parse(
-          "https://ubaya.xyz/flutter/160422024/myMarket_categorylist.php",
-        ),
+        Uri.parse("https://ubaya.xyz/flutter/160422024/myMarket_categorylist.php"),
       );
       if (response.statusCode == 200) {
         Map jsonResponse = jsonDecode(response.body);
@@ -163,7 +160,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
               Text(
                 product.name,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 2,
@@ -171,9 +168,12 @@ class _HomeCustomerState extends State<HomeCustomer> {
               ),
               const SizedBox(height: 4),
               Text(
-                "Rp ${product.price.toStringAsFixed(0)}",
+                "Rp ${product.price.toStringAsFixed(0).replaceAllMapped(
+                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
+                  (Match m) => '${m[1]}.',
+                )}",
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: 18,
                   color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
                 ),
@@ -185,11 +185,51 @@ class _HomeCustomerState extends State<HomeCustomer> {
     );
   }
 
+  Widget _buildMobileGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2, // 2 columns for mobile
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.75,
+      ),
+      itemCount: filteredProducts.length,
+      itemBuilder: (context, index) => _buildProductGridItem(filteredProducts[index]),
+    );
+  }
+
+  Widget _buildTabletGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3, // 3 columns for tablet
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.75,
+      ),
+      itemCount: filteredProducts.length,
+      itemBuilder: (context, index) => _buildProductGridItem(filteredProducts[index]),
+    );
+  }
+
+  Widget _buildDesktopGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.all(8),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4, // 4 columns for desktop
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.8, // Slightly wider for desktop
+      ),
+      itemCount: filteredProducts.length,
+      itemBuilder: (context, index) => _buildProductGridItem(filteredProducts[index]),
+    );
+  }
+
   Widget _buildProductGrid() {
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (filteredProducts.isEmpty) {
@@ -198,7 +238,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
-            const SizedBox(height: 13),
+            const SizedBox(height: 16),
             Text(
               allProducts.isEmpty ? "Loading products..." : "No products found",
               style: TextStyle(color: Colors.grey[600]),
@@ -213,21 +253,25 @@ class _HomeCustomerState extends State<HomeCustomer> {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: fetchData,
-      child: GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 6, // 6 columns
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 0.75, // Adjust height box
-        ),
-        itemCount: filteredProducts.length,
-        itemBuilder: (context, index) {
-          return _buildProductGridItem(filteredProducts[index]);
-        },
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 600) {
+          return RefreshIndicator(
+            onRefresh: fetchData,
+            child: _buildMobileGrid(),
+          );
+        } else if (constraints.maxWidth < 1200) {
+          return RefreshIndicator(
+            onRefresh: fetchData,
+            child: _buildTabletGrid(),
+          );
+        } else {
+          return RefreshIndicator(
+            onRefresh: fetchData,
+            child: _buildDesktopGrid(),
+          );
+        }
+      },
     );
   }
 
@@ -237,19 +281,20 @@ class _HomeCustomerState extends State<HomeCustomer> {
       body: Column(
         children: [
           if (loginMessage)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            color: Colors.green[600],
-            child: const Text(
-              "Login Success!",
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              color: Colors.green[600],
+              child: const Text(
+                "Login Success!",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Container(
+              constraints: const BoxConstraints(maxWidth: 800),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -283,9 +328,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
                       );
                     }).toList(),
                   ],
-                  onChanged: (int? newValue) {
-                    _filterProducts(newValue);
-                  },
+                  onChanged: _filterProducts,
                 ),
               ),
             ),
