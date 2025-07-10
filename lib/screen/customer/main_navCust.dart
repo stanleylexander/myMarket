@@ -9,8 +9,7 @@ import 'package:my_market/screen/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MainNavigatorCustomer extends StatefulWidget {
-  final bool loginStatus;
-  const MainNavigatorCustomer({super.key, this.loginStatus = false});
+  const MainNavigatorCustomer({super.key});
 
   @override
   State<MainNavigatorCustomer> createState() => _MainNavigatorCustomerState();

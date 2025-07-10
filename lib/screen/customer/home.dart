@@ -6,8 +6,7 @@ import 'package:my_market/class/category.dart';
 import 'package:my_market/screen/customer/product_detail.dart';
 
 class HomeCustomer extends StatefulWidget { 
-  final bool loginStatus;
-  const HomeCustomer({super.key, this.loginStatus = false});
+  const HomeCustomer({super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -28,17 +27,6 @@ class _HomeCustomerState extends State<HomeCustomer> {
     super.initState();
     fetchData();
     fetchCategories();
-
-    if (widget.loginStatus) {
-      loginMessage = true;
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          setState(() {
-            loginMessage = false;
-          });
-        }
-      });
-    }
   }
 
   Future<void> fetchData() async {

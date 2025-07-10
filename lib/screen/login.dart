@@ -54,14 +54,14 @@ class _LoginState extends State<Login> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => const HomePenjual(loginStatus: true),
+              builder: (context) => const HomePenjual(),
             ),
           );
         } else if (role == 'customer') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => const MainNavigatorCustomer(loginStatus: true),
+              builder: (context) => const MainNavigatorCustomer(),
             ),
           );
         } else {

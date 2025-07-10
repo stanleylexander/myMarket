@@ -7,6 +7,8 @@ import 'package:my_market/class/cart_manager.dart';
 import 'package:my_market/class/category.dart';
 import 'package:my_market/class/product.dart';
 import 'package:my_market/screen/customer/private_chat.dart';
+import 'package:my_market/screen/customer/home.dart';
+import 'package:my_market/screen/customer/main_navCust.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final int productId;
@@ -262,6 +264,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
           );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MainNavigatorCustomer()),
+          );
+
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Theme.of(context).primaryColor,
