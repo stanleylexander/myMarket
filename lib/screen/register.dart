@@ -78,161 +78,174 @@ class _RegisterState extends State<Register> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Container(
-          key: _formKey,
-          height: 500,
-          width: 400,
-          margin: EdgeInsets.all(20),
-          padding: EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-            border: Border.all(width: 1),
-            color: Colors.white,
-            boxShadow: [BoxShadow(blurRadius: 5)],
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: EdgeInsets.only(bottom: 40),
-                child: Text(
-                  "Sign up to myMarket",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+        child: SingleChildScrollView( // ✅ Tambahkan ini
+          child: Form( // ✅ Gunakan Form di sini
+            key: _formKey,
+            child: Container(
+              width: 400,
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
+                border: Border.all(width: 1),
+                color: Colors.white,
+                boxShadow: const [BoxShadow(blurRadius: 5)],
               ),
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Email',
-                    hintText: 'Enter valid email id as abc@gmail.com',
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 0, bottom: 0),
+                    child: Image.asset(
+                      'assets/logo-tokko.png',
+                      width: 200,
+                      height: 100,
+                    ),
                   ),
-                  onChanged: (value) {
-                    setState(() {
-                      _user_email = value;
-                    });
-                  },
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: TextField(
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Password',
-                    hintText: 'Enter secure password',
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 40),
+                    child: Text(
+                      "Sign up to myMarket",
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
                   ),
-                  onChanged: (value) {
-                    _user_password = value;
-                  },
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: TextField(
-                  obscureText: true,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: 'Confirm Password',
-                    hintText: 'Re-enter your password',
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Email',
+                        hintText: 'Enter valid email id as abc@gmail.com',
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _user_email = value;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Email wajib diisi' : null,
+                    ),
                   ),
-                  onChanged: (value) {
-                    _user_name = value;
-                  },
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: Row(
-                  children: [
-                    Text("Pilih Job:", style: TextStyle(fontSize: 15)),
-                    SizedBox(width: 10),
-                    Row(
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: TextFormField(
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Password',
+                        hintText: 'Enter secure password',
+                      ),
+                      onChanged: (value) {
+                        _user_password = value;
+                      },
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Password wajib diisi' : null,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Nama',
+                        hintText: 'Masukkan nama pengguna',
+                      ),
+                      onChanged: (value) {
+                        _user_name = value;
+                      },
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Nama wajib diisi' : null,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
                       children: [
-                        Radio<String>(
-                          value: 'penjual',
-                          groupValue: _user_role,
-                          onChanged: (value) {
-                            setState(() {
-                              _user_role = value!;
-                            });
-                          },
+                        const Text("Pilih Job:", style: TextStyle(fontSize: 15)),
+                        const SizedBox(width: 10),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'penjual',
+                              groupValue: _user_role,
+                              onChanged: (value) {
+                                setState(() {
+                                  _user_role = value!;
+                                });
+                              },
+                            ),
+                            const Text("Penjual"),
+                          ],
                         ),
-                        const Text("Penjual"),
+                        const SizedBox(width: 10),
+                        Row(
+                          children: [
+                            Radio<String>(
+                              value: 'customer',
+                              groupValue: _user_role,
+                              onChanged: (value) {
+                                setState(() {
+                                  _user_role = value!;
+                                });
+                              },
+                            ),
+                            const Text("Customer"),
+                          ],
+                        ),
                       ],
                     ),
-                    SizedBox(width: 10),
-                    Row(
-                      children: [
-                        Radio<String>(
-                          value: 'customer',
-                          groupValue: _user_role,
-                          onChanged: (value) {
-                            setState(() {
-                              _user_role = value!;
-                            });
-                          },
-                        ),
-                        const Text("Customer"),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(10),
-                child: Container(
-                  height: 30,
-                  width: 110,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState != null &&
-                          !_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Harap semua form diisi")),
-                        );
-                      } else {
-                        Submit();
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: SizedBox(
+                      height: 30,
+                      width: 110,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            Submit();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const Login()),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Harap semua form diisi")),
+                            );
+                          }
+                        },
+                        child: const Text('Register', style: TextStyle(fontSize: 15)),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 30),
+                    child: TextButton(
+                      style: ButtonStyle(
+                        overlayColor: WidgetStateProperty.all(Colors.transparent),
+                      ),
+                      onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => Login()),
+                          MaterialPageRoute(builder: (context) => const Login()),
                         );
-                      }
-                    },
-                    child: Text('Register', style: TextStyle(fontSize: 15)),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 30),
-                child: TextButton(
-                  style: ButtonStyle(
-                    overlayColor: WidgetStateProperty.all(Colors.transparent),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => Login()),
-                    );
-                  },
-                  child: Text(
-                    "Already have an account",
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.blue,
-                      decoration: TextDecoration.underline,
+                      },
+                      child: const Text(
+                        "Already have an account",
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+
 }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class InputProductPage extends StatefulWidget {
   const InputProductPage({super.key});
@@ -17,6 +18,7 @@ class _InputProductPageState extends State<InputProductPage> {
   String _price = '';
   String _stock = '';
   String _imageUrl = '';
+  int _user_id = 0;
 
   bool _validImage = false;
 
@@ -34,10 +36,24 @@ class _InputProductPageState extends State<InputProductPage> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    loadUserId();
+  }
+
+  Future<void> loadUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _user_id = int.tryParse(prefs.getString('user_id') ?? '0') ?? 0;
+    });
+  }
+
+
   void submit() async {
     final response = await http.post(
       Uri.parse(
-        'https://ubaya.xyz/flutter/160422018/add_product.php',
+        'https://ubaya.xyz/flutter/160422029/myMarket_addproduct.php',
       ), // 🔧 Ganti sesuai API-mu
       body: {
         'name': _name,
@@ -45,6 +61,7 @@ class _InputProductPageState extends State<InputProductPage> {
         'price': _price,
         'stock': _stock,
         'image': _imageUrl,
+        'user_id': _user_id.toString(),
       },
     );
 
