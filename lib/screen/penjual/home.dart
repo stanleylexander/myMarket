@@ -86,6 +86,59 @@ class _HomePenjualState extends State<HomePenjual> {
     }
   }
 
+  void _confirmDelete(int productId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Hapus Produk"),
+        content: const Text("Apakah Anda yakin ingin menghapus produk ini?"),
+        actions: [
+          TextButton(
+            child: const Text("Batal"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          TextButton(
+            child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              Navigator.of(context).pop(); // Tutup dialog
+              _deleteProduct(productId);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteProduct(int productId) async {
+    final response = await http.post(
+      Uri.parse("https://ubaya.xyz/flutter/160422029/myMarket_deleteproduct.php"), 
+      body: {'id': productId.toString()},
+    );
+
+    if (response.statusCode == 200) {
+      final result = jsonDecode(response.body);
+      if (result['result'] == 'success') {
+        setState(() {
+          _products.removeWhere((product) => product.id == productId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Produk berhasil dihapus")),
+        );
+      } else {
+        _showError(result['message']);
+      }
+    } else {
+      _showError("Gagal menghapus produk (kode: ${response.statusCode})");
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: $message")),
+    );
+  }
+
+
   Future<void> doLogout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_id');
@@ -176,6 +229,12 @@ class _HomePenjualState extends State<HomePenjual> {
                 icon: const Icon(Icons.edit, color: Colors.blue),
                 onPressed: () {
                   // Add edit functionality
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () {
+                  _confirmDelete(product.id);
                 },
               ),
             ],
