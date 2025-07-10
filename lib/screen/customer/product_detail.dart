@@ -238,7 +238,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
+<<<<<<< Updated upstream
         icon: const Icon(Icons.shopping_cart, color: Colors.white),
+=======
+        icon: const Icon(Icons.shopping_cart, color: Colors.white,),
+>>>>>>> Stashed changes
         label: const Text(
           'Tambah ke Keranjang',
           style: TextStyle(fontSize: 16),
