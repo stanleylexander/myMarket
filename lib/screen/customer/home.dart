@@ -5,8 +5,9 @@ import 'package:my_market/class/product.dart';
 import 'package:my_market/class/category.dart';
 import 'package:my_market/screen/customer/product_detail.dart';
 
-class HomeCustomer extends StatefulWidget {
-  const HomeCustomer({super.key});
+class HomeCustomer extends StatefulWidget { 
+  final bool loginStatus;
+  const HomeCustomer({super.key, this.loginStatus = false});
 
   @override
   State<StatefulWidget> createState() {
@@ -20,12 +21,25 @@ class _HomeCustomerState extends State<HomeCustomer> {
   List<Category> categories = [];
   int? selectedCategoryId;
   bool isLoading = true;
+  bool loginMessage = false;
 
   @override
   void initState() {
     super.initState();
     fetchData();
     fetchCategories();
+
+    if (widget.loginStatus) {
+      loginMessage = true;
+
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            loginMessage = false;
+          });
+        }
+      });
+    }
   }
 
   Future<void> fetchData() async {
@@ -222,6 +236,17 @@ class _HomeCustomerState extends State<HomeCustomer> {
     return Scaffold(
       body: Column(
         children: [
+          if (loginMessage)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            color: Colors.green[600],
+            child: const Text(
+              "Login Success!",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: Container(

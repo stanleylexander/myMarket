@@ -1,13 +1,15 @@
 // lib/screen/customer/main_navigator_customer.dart
 
 import 'package:flutter/material.dart';
+import 'package:my_market/chat.dart';
 import 'package:my_market/screen/customer/cart.dart';
 import 'package:my_market/screen/customer/home.dart';
 import 'package:my_market/screen/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MainNavigatorCustomer extends StatefulWidget {
-  const MainNavigatorCustomer({super.key});
+  final bool loginStatus;
+  const MainNavigatorCustomer({super.key, this.loginStatus = false});
 
   @override
   State<MainNavigatorCustomer> createState() => _MainNavigatorCustomerState();
@@ -53,6 +55,17 @@ class _MainNavigatorCustomerState extends State<MainNavigatorCustomer> {
         title: Text(_title),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.chat),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChatPage()),
+              );
+            },
+          ),
+        ],
       ),
       drawer: Drawer(
         child: ListView(

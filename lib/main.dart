@@ -3,11 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:my_market/screen/customer/main_navCust.dart';
 import 'package:my_market/screen/login.dart';
+import 'package:my_market/screen/penjual/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Variabel global (jika masih diperlukan)
 String active_user = "";
 String active_user_id = "";
+String active_user_email = "";
 String active_user_role = "";
 
 void main() {
@@ -17,19 +18,22 @@ void main() {
   checkUser().then((Map<String, String> result) {
     Widget homePage;
     if (result['user_name'] == '') {
-      homePage = MyLogin(); // Tentukan halaman login sebagai home
-    } else {
-      // Set variabel global jika perlu
+      homePage = MyLogin(); 
+    } 
+    else {
       active_user = result['user_name'] ?? '';
       active_user_id = result['user_id'] ?? '';
       active_user_role = result['user_role'] ?? '';
+      active_user_email = result['user_email'] ?? '';
 
-      // Tentukan halaman berdasarkan role
       if (active_user_role == 'customer') {
-        homePage = const MainNavigatorCustomer();
-      } else {
-        // Ganti dengan navigator untuk penjual jika sudah ada
-        homePage = Scaffold(body: Center(child: Text("Halaman Penjual")));
+        homePage = MainNavigatorCustomer();
+      } 
+      else if (active_user_role == "penjual") {
+        homePage = HomePenjual();
+      }
+      else{
+        homePage = const MyLogin();
       }
     }
 
@@ -63,6 +67,13 @@ Future<Map<String, String>> checkUser() async {
   final prefs = await SharedPreferences.getInstance();
   String userId = prefs.getString("user_id") ?? '';
   String userName = prefs.getString("user_name") ?? '';
+  String userEmail = prefs.getString("user_email") ?? '';
   String userRole = prefs.getString("user_role") ?? '';
-  return {'user_id': userId, 'user_name': userName, 'user_role': userRole};
+  
+  return {
+    'user_id': userId, 
+    'user_name': userName, 
+    'user_email': userEmail, 
+    'user_role': userRole
+  };
 }

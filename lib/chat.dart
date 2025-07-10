@@ -15,8 +15,7 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _textController = TextEditingController();
-  final ScrollController _scrollController =
-      ScrollController(); //scroll controller (gk diajari) buat nantik chat nya auto kebawah keren ga tuh
+  final ScrollController _scrollController = ScrollController(); //scroll controller (gk diajari) buat nantik chat nya auto kebawah keren ga tuh
 
   List<ChatMessage> messages = [];
   int myUserId = 0;
@@ -36,7 +35,7 @@ class _ChatPageState extends State<ChatPage> {
   void loadUserId() async {
     //ambil id nya dari email dr login,
     final prefs = await SharedPreferences.getInstance();
-    String? email = prefs.getString('_user_email');
+    String? email = prefs.getString('user_email');
 
     if (email == null || email.isEmpty) {
       print("Email not found in SharedPreferences");
@@ -125,31 +124,60 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Widget buildMessage(ChatMessage msg) {
+    final bool isMe = msg.userId == myUserId;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      alignment: Alignment.centerLeft,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            msg.username,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+    margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+    child: Row(
+      mainAxisAlignment:
+          isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!isMe)
+          CircleAvatar(
+            backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=${msg.userId}"),
+            radius: 18,
           ),
-          const SizedBox(height: 4),
-          Text(msg.text),
-          const SizedBox(height: 4),
-          Text(
-            msg.timestamp.toString(),
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
+        if (!isMe) const SizedBox(width: 8),
+
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isMe ? Colors.deepPurple[100] : Colors.grey[200],
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(12),
+                topRight: const Radius.circular(12),
+                bottomLeft: Radius.circular(isMe ? 12 : 0),
+                bottomRight: Radius.circular(isMe ? 0 : 12),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!isMe)
+                  Text(
+                    msg.username,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                Text(
+                  msg.text,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  msg.timestamp.toString(),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
-    );
+        ),
+      ],
+    ),
+  );
   }
 
   @override
@@ -166,21 +194,36 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            color: Colors.white,
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    decoration: const InputDecoration(
-                      hintText: "Ketik Pesan anda di sini",
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: TextField(
+                      controller: _textController,
+                      decoration: const InputDecoration(
+                        hintText: "Ketik pesan...",
+                        border: InputBorder.none,
+                      ),
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: sendMessage,
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: sendMessage,
+                  child: CircleAvatar(
+                    backgroundColor: Colors.deepPurple,
+                    radius: 22,
+                    child: const Icon(Icons.send, color: Colors.white),
+                  ),
                 ),
               ],
             ),
