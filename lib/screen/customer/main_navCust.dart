@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:my_market/chat.dart';
 import 'package:my_market/screen/customer/cart.dart';
 import 'package:my_market/screen/customer/home.dart';
+import 'package:my_market/screen/customer/list_chat.dart';
 import 'package:my_market/screen/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -99,9 +100,9 @@ class _MainNavigatorCustomerState extends State<MainNavigatorCustomer> {
               leading: const Icon(Icons.person),
               title: const Text('Private Chat'),
               onTap: () {
-                // TODO: Replace with actual PrivateChatPage once created
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Private Chat - Coming Soon')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ListChat()),
                 );
               },
             ),

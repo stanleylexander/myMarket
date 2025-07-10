@@ -86,46 +86,49 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildImageSection() {
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 500),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child:
-            product!.image.isNotEmpty
-                ? Image.network(
-                  product!.image,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.broken_image,
-                            size: 60,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Gambar tidak tersedia',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                )
-                : Center(
-                  child: Icon(
-                    Icons.shopping_bag,
-                    size: 80,
-                    color: Colors.grey[400],
+    return AspectRatio(
+      aspectRatio: 2 / 2,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child:
+              product!.image.isNotEmpty
+                  ? Image.network(
+                    product!.image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              size: 60,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Gambar tidak tersedia',
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  )
+                  : Center(
+                    child: Icon(
+                      Icons.shopping_bag,
+                      size: 80,
+                      color: Colors.grey[400],
+                    ),
                   ),
-                ),
+        ),
       ),
     );
   }
@@ -235,7 +238,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: const Icon(Icons.shopping_cart),
+        icon: const Icon(Icons.shopping_cart, color: Colors.white),
         label: const Text(
           'Tambah ke Keranjang',
           style: TextStyle(fontSize: 16),
