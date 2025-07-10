@@ -19,28 +19,22 @@ class _MainNavigatorCustomerState extends State<MainNavigatorCustomer> {
   int _selectedIndex = 0;
   String _title = "Daftar Produk";
 
-  // Daftar halaman yang akan ditampilkan
-  final List<Widget> _pages = [
-    const HomeCustomer(),
-    const CartScreen(), // Halaman Pembelian / Keranjang
-  ];
+  final List<Widget> _pages = [const HomeCustomer(), const CartScreen()];
 
   void _onItemTapped(int index, String title) {
     setState(() {
       _selectedIndex = index;
       _title = title;
     });
-    Navigator.pop(context); // Menutup drawer setelah item dipilih
+    Navigator.pop(context);
   }
 
   void _logout() async {
     final prefs = await SharedPreferences.getInstance();
-    // Hapus semua data sesi
     await prefs.remove("user_id");
     await prefs.remove("user_name");
     await prefs.remove("user_role");
 
-    // Kembali ke halaman login
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (context) => MyLogin()),
@@ -83,16 +77,32 @@ class _MainNavigatorCustomerState extends State<MainNavigatorCustomer> {
               leading: const Icon(Icons.home),
               title: const Text('Home'),
               selected: _selectedIndex == 0,
-              onTap: () {
-                _onItemTapped(0, "Daftar Produk");
-              },
+              onTap: () => _onItemTapped(0, "Daftar Produk"),
             ),
             ListTile(
               leading: const Icon(Icons.shopping_cart),
               title: const Text('Pembelian'),
               selected: _selectedIndex == 1,
+              onTap: () => _onItemTapped(1, "Keranjang Belanja"),
+            ),
+            ListTile(
+              leading: const Icon(Icons.chat),
+              title: const Text('Group Chat'),
               onTap: () {
-                _onItemTapped(1, "Keranjang Belanja");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ChatPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Private Chat'),
+              onTap: () {
+                // TODO: Replace with actual PrivateChatPage once created
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Private Chat - Coming Soon')),
+                );
               },
             ),
             const Divider(),
