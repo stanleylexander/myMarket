@@ -29,7 +29,7 @@ class _PrivateChatPageState extends State<PrivateChatPage> {
     final prefs = await SharedPreferences.getInstance();
     userId = prefs.getString("user_id") ?? '';
 
-    fetchMessages(); // Initial fetch
+    fetchMessages();
 
     _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       fetchMessages();

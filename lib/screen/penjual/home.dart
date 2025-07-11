@@ -9,7 +9,6 @@ import 'package:my_market/main.dart';
 import 'package:my_market/screen/login.dart';
 import 'package:my_market/screen/penjual/kategori.dart';
 import 'package:my_market/screen/penjual/produk.dart';
-// TAMBAHKAN IMPORT UNTUK EDIT PAGE
 import 'package:my_market/screen/penjual/edit_product.dart';
 
 class HomePenjual extends StatefulWidget {
@@ -63,7 +62,6 @@ class _HomePenjualState extends State<HomePenjual> {
         Uri.parse(
           "https://ubaya.xyz/flutter/160422029/myMarket_productlistpenjual.php",
         ),
-        // Sesuai kode Anda, parameter untuk mengambil list adalah 'user_id'
         body: {'user_id': _userId},
       );
 
@@ -112,7 +110,7 @@ class _HomePenjualState extends State<HomePenjual> {
               TextButton(
                 child: const Text("Hapus", style: TextStyle(color: Colors.red)),
                 onPressed: () {
-                  Navigator.of(context).pop(); // Tutup dialog
+                  Navigator.of(context).pop();
                   _deleteProduct(productId);
                 },
               ),
@@ -155,7 +153,7 @@ class _HomePenjualState extends State<HomePenjual> {
 
   Future<void> doLogout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Cara lebih cepat untuk menghapus semua session
+    await prefs.clear(); //Cara cepat untuk menghapus session
 
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
@@ -290,7 +288,6 @@ class _HomePenjualState extends State<HomePenjual> {
                   builder: (context) => const InputProductPage(),
                 ),
               );
-              // Jika berhasil menambah produk, refresh list
               if (result == true) {
                 fetchProducts();
               }
@@ -336,7 +333,7 @@ class _HomePenjualState extends State<HomePenjual> {
             context,
             MaterialPageRoute(builder: (context) => const InputProductPage()),
           );
-          // Jika berhasil menambah produk dari FAB, refresh list
+          //Jika berhasil tambah produk, refresh list
           if (result == true) {
             fetchProducts();
           }
@@ -435,14 +432,14 @@ class _HomePenjualState extends State<HomePenjual> {
             leading: const Icon(Icons.dashboard_customize, color: Colors.blue),
             title: const Text("Dashboard"),
             onTap: () {
-              Navigator.pop(context); // Tutup drawer
+              Navigator.pop(context); 
             },
           ),
           ListTile(
             leading: const Icon(Icons.category, color: Colors.green),
             title: const Text("Kelola Kategori"),
             onTap: () {
-              Navigator.pop(context); // Tutup drawer dulu
+              Navigator.pop(context); 
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const KategoriPage()),
@@ -453,7 +450,7 @@ class _HomePenjualState extends State<HomePenjual> {
             leading: const Icon(Icons.category, color: Colors.green),
             title: const Text("Private Chat"),
             onTap: () {
-              Navigator.pop(context); // Tutup drawer dulu
+              Navigator.pop(context); 
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ListChat()),

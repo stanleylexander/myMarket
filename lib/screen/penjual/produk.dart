@@ -53,7 +53,6 @@ class _InputProductPageState extends State<InputProductPage> {
         ),
       );
       if (response.statusCode == 200) {
-        // Skrip listcategory.php sekarang mengembalikan format {"result":"success", "data": [...]}
         final Map<String, dynamic> body = jsonDecode(response.body);
         if (body['result'] == 'success') {
           if (mounted) {

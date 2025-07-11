@@ -188,7 +188,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2, // 2 columns for mobile
+        crossAxisCount: 2, //Membuat 2 kolom (responsive)
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
         childAspectRatio: 0.75,
@@ -203,7 +203,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // 3 columns for tablet
+        crossAxisCount: 3, //Membuat 3 kolom (responsive)
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
         childAspectRatio: 0.75,
@@ -218,10 +218,10 @@ class _HomeCustomerState extends State<HomeCustomer> {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4, // 4 columns for desktop
+        crossAxisCount: 4, //Membuat 4 kolom (default)
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
-        childAspectRatio: 0.8, // Slightly wider for desktop
+        childAspectRatio: 0.8, 
       ),
       itemCount: filteredProducts.length,
       itemBuilder:
