@@ -54,32 +54,14 @@ class _RegisterState extends State<Register> {
       ).showSnackBar(SnackBar(content: Text('Error')));
       throw Exception('Failed to connect to API');
     }
-
-    // final response = await http
-    //   .post(Uri.parse("https://ubaya.xyz/flutter/160422029/register.php"), body: {
-    // 'email': _user_email,
-    // 'username': _user_name,
-    // 'password': _user_password,
-    // 'role': _user_role
-    // });
-    // if(response.statusCode == 200){
-    //   Map json = jsonDecode(response.body);
-    //   if(json['result']=='success'){
-    //     if(!mounted) return;
-    //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Sukses Register")));
-    //   }
-    // } else{
-    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error")));
-    //   throw Exception("Gagal membaca API");
-    // }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: SingleChildScrollView( // ✅ Tambahkan ini
-          child: Form( // ✅ Gunakan Form di sini
+        child: SingleChildScrollView( 
+          child: Form( 
             key: _formKey,
             child: Container(
               width: 400,

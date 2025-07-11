@@ -18,7 +18,7 @@ class ChatMessage {
       id: int.parse(json['id']),
       text: json['text'],
       userId: int.parse(json['user_id']),
-      username: json['username'], // assumed from join query
+      username: json['username'], 
       timestamp: DateTime.parse(json['tanggal']),
     );
   }
