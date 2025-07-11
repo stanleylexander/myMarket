@@ -160,7 +160,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
               Text(
                 product.name,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 2,
@@ -170,10 +170,12 @@ class _HomeCustomerState extends State<HomeCustomer> {
               Text(
                 "Rp ${product.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 14,
                   color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
