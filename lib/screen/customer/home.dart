@@ -5,7 +5,7 @@ import 'package:my_market/class/product.dart';
 import 'package:my_market/class/category.dart';
 import 'package:my_market/screen/customer/product_detail.dart';
 
-class HomeCustomer extends StatefulWidget { 
+class HomeCustomer extends StatefulWidget {
   const HomeCustomer({super.key});
 
   @override
@@ -33,10 +33,12 @@ class _HomeCustomerState extends State<HomeCustomer> {
     setState(() {
       isLoading = true;
     });
-    
+
     try {
       final response = await http.post(
-        Uri.parse("https://ubaya.xyz/flutter/160422029/myMarket_productlist.php"),
+        Uri.parse(
+          "https://ubaya.xyz/flutter/160422029/myMarket_productlist.php",
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -66,7 +68,9 @@ class _HomeCustomerState extends State<HomeCustomer> {
   Future<void> fetchCategories() async {
     try {
       final response = await http.post(
-        Uri.parse("https://ubaya.xyz/flutter/160422024/myMarket_categorylist.php"),
+        Uri.parse(
+          "https://ubaya.xyz/flutter/160422029/myMarket_listcategory.php",
+        ),
       );
       if (response.statusCode == 200) {
         Map jsonResponse = jsonDecode(response.body);
@@ -91,9 +95,10 @@ class _HomeCustomerState extends State<HomeCustomer> {
       if (categoryId == null) {
         filteredProducts = allProducts;
       } else {
-        filteredProducts = allProducts.where((p) {
-          return p.category?.any((c) => c.id == categoryId) ?? false;
-        }).toList();
+        filteredProducts =
+            allProducts.where((p) {
+              return p.category?.any((c) => c.id == categoryId) ?? false;
+            }).toList();
       }
     });
   }
@@ -111,9 +116,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
       child: Card(
         elevation: 2,
         margin: const EdgeInsets.all(4),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: Column(
@@ -123,25 +126,34 @@ class _HomeCustomerState extends State<HomeCustomer> {
                 aspectRatio: 1,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: product.image.isNotEmpty
-                      ? Image.network(
-                          product.image,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[200],
-                              child: const Center(
-                                child: Icon(Icons.shopping_bag, size: 30, color: Colors.grey),
+                  child:
+                      product.image.isNotEmpty
+                          ? Image.network(
+                            product.image,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.shopping_bag,
+                                    size: 30,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              );
+                            },
+                          )
+                          : Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Icon(
+                                Icons.shopping_bag,
+                                size: 30,
+                                color: Colors.grey,
                               ),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: Icon(Icons.shopping_bag, size: 30, color: Colors.grey),
+                            ),
                           ),
-                        ),
                 ),
               ),
               const SizedBox(height: 8),
@@ -156,10 +168,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
               ),
               const SizedBox(height: 4),
               Text(
-                "Rp ${product.price.toStringAsFixed(0).replaceAllMapped(
-                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
-                  (Match m) => '${m[1]}.',
-                )}",
+                "Rp ${product.price.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}",
                 style: TextStyle(
                   fontSize: 18,
                   color: Theme.of(context).primaryColor,
@@ -183,7 +192,8 @@ class _HomeCustomerState extends State<HomeCustomer> {
         childAspectRatio: 0.75,
       ),
       itemCount: filteredProducts.length,
-      itemBuilder: (context, index) => _buildProductGridItem(filteredProducts[index]),
+      itemBuilder:
+          (context, index) => _buildProductGridItem(filteredProducts[index]),
     );
   }
 
@@ -197,7 +207,8 @@ class _HomeCustomerState extends State<HomeCustomer> {
         childAspectRatio: 0.75,
       ),
       itemCount: filteredProducts.length,
-      itemBuilder: (context, index) => _buildProductGridItem(filteredProducts[index]),
+      itemBuilder:
+          (context, index) => _buildProductGridItem(filteredProducts[index]),
     );
   }
 
@@ -211,7 +222,8 @@ class _HomeCustomerState extends State<HomeCustomer> {
         childAspectRatio: 0.8, // Slightly wider for desktop
       ),
       itemCount: filteredProducts.length,
-      itemBuilder: (context, index) => _buildProductGridItem(filteredProducts[index]),
+      itemBuilder:
+          (context, index) => _buildProductGridItem(filteredProducts[index]),
     );
   }
 
@@ -275,7 +287,10 @@ class _HomeCustomerState extends State<HomeCustomer> {
               color: Colors.green[600],
               child: const Text(
                 "Login Success!",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -321,9 +336,7 @@ class _HomeCustomerState extends State<HomeCustomer> {
               ),
             ),
           ),
-          Expanded(
-            child: _buildProductGrid(),
-          ),
+          Expanded(child: _buildProductGrid()),
         ],
       ),
     );
