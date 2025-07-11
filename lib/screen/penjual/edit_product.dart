@@ -25,7 +25,6 @@ class _EditProductPageState extends State<EditProductPage> {
   List<int> _selectedCategoryIds = [];
   bool _isLoading = true;
   bool _isSubmitting = false;
-  // State untuk validasi gambar dari kode lama Anda
   bool _validImage = false;
 
   @override
@@ -48,13 +47,10 @@ class _EditProductPageState extends State<EditProductPage> {
     if (widget.product.image.isNotEmpty) {
       _validImage = await validateImage(widget.product.image);
     }
-
     await _fetchCategories();
     if (widget.product.category != null) {
-      setState(() {
-        _selectedCategoryIds =
-            widget.product.category!.map((cat) => cat.id).toList();
-      });
+      _selectedCategoryIds =
+          widget.product.category!.map((cat) => cat.id).toList();
     }
     if (mounted) {
       setState(() {
@@ -71,22 +67,30 @@ class _EditProductPageState extends State<EditProductPage> {
         ),
       );
       if (response.statusCode == 200) {
-        final List<dynamic> body = jsonDecode(response.body);
-        if (mounted) {
-          setState(() {
-            _allCategories =
-                body.map((item) => Category.fromJson(item)).toList();
-          });
+        final Map<String, dynamic> body = jsonDecode(response.body);
+        if (body['result'] == 'success') {
+          if (mounted) {
+            setState(() {
+              _allCategories =
+                  (body['data'] as List)
+                      .map((item) => Category.fromJson(item))
+                      .toList();
+            });
+          }
         }
       }
     } catch (e) {
-      // Error handling
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Gagal memuat kategori: $e")));
+      }
     }
   }
 
-  // Logika validasi gambar dari kode lama Anda
   Future<bool> validateImage(String url) async {
     try {
+      if (!Uri.parse(url).isAbsolute) return false;
       final response = await http.get(Uri.parse(url));
       if (response.statusCode != 200) return false;
       final contentType = response.headers['content-type'];
@@ -102,10 +106,11 @@ class _EditProductPageState extends State<EditProductPage> {
   Future<void> _updateProduct() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
+
     try {
       final response = await http.post(
         Uri.parse(
-          "https://ubaya.xyz/flutter/160422029/myMarket_editProduct.php",
+          "https://ubaya.xyz/flutter/160422029/myMarket_editproduct.php",
         ),
         body: {
           'id': widget.product.id.toString(),
@@ -126,20 +131,17 @@ class _EditProductPageState extends State<EditProductPage> {
           );
           Navigator.pop(context, true);
         } else {
-          final errorMessage =
-              jsonResponse['message'] ??
-              jsonResponse['error'] ??
-              'Terjadi error tidak diketahui';
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Gagal memperbarui: $errorMessage'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('Gagal: ${jsonResponse['message']}')),
           );
         }
       }
     } catch (e) {
-      // Error handling
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -151,7 +153,10 @@ class _EditProductPageState extends State<EditProductPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Kategori", style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text(
+          "Kategori",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         const SizedBox(height: 8.0),
         Wrap(
           spacing: 8.0,
@@ -200,6 +205,7 @@ class _EditProductPageState extends State<EditProductPage> {
                 child: Form(
                   key: _formKey,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       TextFormField(
                         controller: _nameController,
@@ -257,29 +263,33 @@ class _EditProductPageState extends State<EditProductPage> {
                             }
                           });
                         },
-                        validator:
-                            (value) =>
-                                value == null ||
-                                        value.isEmpty ||
-                                        !_validImage ||
-                                        !Uri.parse(value).isAbsolute
-                                    ? 'URL gambar tidak valid'
-                                    : null,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'URL Gambar tidak boleh kosong';
+                          }
+                          if (!_validImage) {
+                            return 'URL gambar tidak valid atau tidak dapat diakses';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 10),
-                      if (_validImage)
-                        Image.network(
-                          _imageController.text,
-                          height: 150,
-                          fit: BoxFit.contain,
-                        )
-                      else
-                        const Text('Gambar tidak valid atau belum dimasukkan'),
+                      if (_imageController.text.isNotEmpty)
+                        _validImage
+                            ? Image.network(
+                              _imageController.text,
+                              height: 150,
+                              fit: BoxFit.contain,
+                            )
+                            : const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text('Memvalidasi URL...'),
+                            ),
                       const SizedBox(height: 20),
                       _buildCategoryChips(),
                       const SizedBox(height: 20),
                       _isSubmitting
-                          ? const CircularProgressIndicator()
+                          ? const Center(child: CircularProgressIndicator())
                           : ElevatedButton(
                             onPressed: _updateProduct,
                             child: const Text('Simpan Perubahan'),

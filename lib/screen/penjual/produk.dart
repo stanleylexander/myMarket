@@ -53,19 +53,31 @@ class _InputProductPageState extends State<InputProductPage> {
         ),
       );
       if (response.statusCode == 200) {
-        final List<dynamic> body = jsonDecode(response.body);
-        if (mounted) {
-          setState(() {
-            _allCategories =
-                body.map((item) => Category.fromJson(item)).toList();
-          });
+        // Skrip listcategory.php sekarang mengembalikan format {"result":"success", "data": [...]}
+        final Map<String, dynamic> body = jsonDecode(response.body);
+        if (body['result'] == 'success') {
+          if (mounted) {
+            setState(() {
+              _allCategories =
+                  (body['data'] as List)
+                      .map((item) => Category.fromJson(item))
+                      .toList();
+            });
+          }
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Gagal memuat kategori: $e")));
+      }
+    }
   }
 
   Future<bool> validateImage(String url) async {
     try {
+      if (!Uri.parse(url).isAbsolute) return false;
       final response = await http.get(Uri.parse(url));
       if (response.statusCode != 200) return false;
       final contentType = response.headers['content-type'];
@@ -80,6 +92,7 @@ class _InputProductPageState extends State<InputProductPage> {
 
   void _submitProduct() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() => _isSubmitting = true);
     try {
       final response = await http.post(
@@ -115,7 +128,11 @@ class _InputProductPageState extends State<InputProductPage> {
         }
       }
     } catch (e) {
-      // Error handling
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -127,7 +144,10 @@ class _InputProductPageState extends State<InputProductPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Kategori", style: TextStyle(fontWeight: FontWeight.bold)),
+        const Text(
+          "Kategori",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         const SizedBox(height: 8.0),
         Wrap(
           spacing: 8.0,
@@ -166,6 +186,7 @@ class _InputProductPageState extends State<InputProductPage> {
                 child: Form(
                   key: _formKey,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       TextFormField(
                         decoration: const InputDecoration(
@@ -226,31 +247,33 @@ class _InputProductPageState extends State<InputProductPage> {
                             }
                           });
                         },
-                        validator:
-                            (value) =>
-                                value == null ||
-                                        value.isEmpty ||
-                                        !_validImage ||
-                                        !Uri.parse(value).isAbsolute
-                                    ? 'URL gambar tidak valid'
-                                    : null,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'URL Gambar tidak boleh kosong';
+                          }
+                          if (!_validImage) {
+                            return 'URL gambar tidak valid atau tidak dapat diakses';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 10),
-                      if (_validImage)
-                        Image.network(
-                          _imageUrl,
-                          height: 150,
-                          fit: BoxFit.contain,
-                        )
-                      else
-                        const Text(
-                          'Gambar tidak valid, error di CORS atau belum dimasukkan',
-                        ),
+                      if (_imageUrl.isNotEmpty)
+                        _validImage
+                            ? Image.network(
+                              _imageUrl,
+                              height: 150,
+                              fit: BoxFit.contain,
+                            )
+                            : const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text('Memvalidasi URL...'),
+                            ),
                       const SizedBox(height: 20),
                       _buildCategoryChips(),
                       const SizedBox(height: 20),
                       _isSubmitting
-                          ? const CircularProgressIndicator()
+                          ? const Center(child: CircularProgressIndicator())
                           : ElevatedButton(
                             onPressed: _submitProduct,
                             child: const Text('Simpan Produk'),
