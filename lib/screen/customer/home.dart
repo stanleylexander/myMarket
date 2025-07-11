@@ -119,36 +119,36 @@ class _HomeCustomerState extends State<HomeCustomer> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AspectRatio(
-                aspectRatio: 1,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: product.image.isNotEmpty
-                      ? Image.network(
-                          product.image,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: product.image.isNotEmpty
+                        ? Image.network(
+                            product.image,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
                               color: Colors.grey[200],
                               child: const Center(
                                 child: Icon(Icons.shopping_bag, size: 30, color: Colors.grey),
                               ),
-                            );
-                          },
-                        )
-                      : Container(
-                          color: Colors.grey[200],
-                          child: const Center(
-                            child: Icon(Icons.shopping_bag, size: 30, color: Colors.grey),
+                            ),
+                          )
+                        : Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Icon(Icons.shopping_bag, size: 30, color: Colors.grey),
+                            ),
                           ),
-                        ),
+                  ),
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 product.name,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 2,
@@ -157,14 +157,16 @@ class _HomeCustomerState extends State<HomeCustomer> {
               const SizedBox(height: 4),
               Text(
                 "Rp ${product.price.toStringAsFixed(0).replaceAllMapped(
-                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), 
+                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
                   (Match m) => '${m[1]}.',
                 )}",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 14,
                   color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
