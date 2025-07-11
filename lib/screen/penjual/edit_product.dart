@@ -110,7 +110,7 @@ class _EditProductPageState extends State<EditProductPage> {
     try {
       final response = await http.post(
         Uri.parse(
-          "https://ubaya.xyz/flutter/160422029/myMarket_editproduct.php",
+          "https://ubaya.xyz/flutter/160422029/myMarket_editProduct.php",
         ),
         body: {
           'id': widget.product.id.toString(),
