@@ -35,12 +35,15 @@ class _KategoriPageState extends State<KategoriPage> {
       );
 
       if (res.statusCode == 200) {
-        final List<dynamic> body = jsonDecode(res.body);
-        setState(() {
-          kategoriList = body.map((item) => Category.fromJson(item)).toList();
-          _editingId = null;
-          _name = '';
-        });
+        final Map<String, dynamic> jsonResponse = jsonDecode(res.body);
+        if (jsonResponse['result'] == 'success') {
+          final List<dynamic> data = jsonResponse['data'];
+          setState(() {
+            kategoriList = data.map((item) => Category.fromJson(item)).toList();
+            _editingId = null;
+            _name = '';
+          });
+        }
       }
     } catch (e) {
       if (!mounted) return;
@@ -57,7 +60,7 @@ class _KategoriPageState extends State<KategoriPage> {
   Future<void> submitKategori() async {
     final url =
         _editingId == null
-            ? 'https://ubaya.xyz/flutter/160422029/myMarket_addCategory.php'
+            ? 'https://ubaya.xyz/flutter/160422029/myMarket_addcategory.php'
             : 'https://ubaya.xyz/flutter/160422029/myMarket_editCategory.php';
 
     try {
