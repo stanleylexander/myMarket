@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:my_market/chat.dart';
 import 'package:my_market/class/cart_item.dart';
 import 'package:my_market/class/cart_manager.dart';
 import 'package:my_market/class/category.dart';
 import 'package:my_market/class/product.dart';
 import 'package:my_market/screen/customer/private_chat.dart';
-import 'package:my_market/screen/customer/home.dart';
 import 'package:my_market/screen/customer/main_navCust.dart';
 
 class ProductDetailScreen extends StatefulWidget {

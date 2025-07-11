@@ -82,7 +82,7 @@ class _KategoriPageState extends State<KategoriPage> {
               ),
             ),
           );
-          fetchKategori(); // Muat ulang daftar kategori
+          fetchKategori(); //Fetch ulang kategori
         } else {
           throw Exception(json['message'] ?? 'Alasan tidak diketahui');
         }
@@ -101,7 +101,6 @@ class _KategoriPageState extends State<KategoriPage> {
     try {
       final res = await http.post(
         Uri.parse(
-          // DIUBAH: Nama file PHP diseragamkan menjadi huruf kecil semua
           'https://ubaya.xyz/flutter/160422029/myMarket_deleteCategory.php',
         ),
         body: {'id': id.toString()},
@@ -113,7 +112,7 @@ class _KategoriPageState extends State<KategoriPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Kategori berhasil dihapus')),
           );
-          fetchKategori(); // Muat ulang daftar kategori
+          fetchKategori(); 
         } else {
           throw Exception(json['message'] ?? 'Alasan tidak diketahui');
         }
@@ -161,7 +160,6 @@ class _KategoriPageState extends State<KategoriPage> {
                         children: [
                           Expanded(
                             child: TextFormField(
-                              // Gunakan controller untuk update UI secara dinamis
                               controller: TextEditingController(text: _name)
                                 ..selection = TextSelection.fromPosition(
                                   TextPosition(offset: _name.length),

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:my_market/class/chat_message.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-// Import the model
+
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -43,7 +43,7 @@ class _ChatPageState extends State<ChatPage> {
     }
 
     final url = Uri.parse(
-      'https://ubaya.xyz/flutter/160422029/myMarket_getIdEmail.php', //webservice nya ini
+      'https://ubaya.xyz/flutter/160422029/myMarket_getIdEmail.php',
     );
 
     try {
